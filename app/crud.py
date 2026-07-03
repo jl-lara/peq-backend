@@ -3,13 +3,13 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas
-from passlib.context import CryptContext
+import bcrypt
 
-# Configuramos el motor de encriptación
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str):
+    # Genera la sal y hashea la contraseña directamente con bcrypt
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 # ==========================================
 # CRUD PARA 'ESTADOS'
@@ -278,7 +278,10 @@ def authenticate_user(db: Session, username: str, password: str):
     user = db.query(models.Usuario).filter(models.Usuario.usuario == username).first()
     if not user:
         return False
-    # Verificamos la contraseña encriptada
-    if not pwd_context.verify(password, user.password):
+    
+    # Comparamos la contraseña en texto plano contra el hash de la base de datos
+    is_correct = bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8'))
+    if not is_correct:
         return False
+        
     return user
