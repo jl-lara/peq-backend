@@ -24,7 +24,7 @@ Aunque existe endpoint de login y token JWT, **actualmente los endpoints de nego
 ## URL base
 
 - **Local (ejemplo):** `http://localhost:8000`
-- **Producción:** `PENDIENTE_DEFINIR_POR_EQUIPO`  ← actualizar cuando compartan URL final
+- **Producción:** `https://peq-backend.onrender.com`
 
 ## Encabezados
 
@@ -315,7 +315,7 @@ Secuencia sugerida:
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:8000" // reemplazar por producción
+  baseURL: "https://peq-backend.onrender.com"
 });
 
 api.interceptors.request.use((config) => {
