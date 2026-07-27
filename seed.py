@@ -13,13 +13,20 @@ def poblar_base_de_datos():
         rol_vet = models.Rol(nombre="Veterinario", descripcion="Certificador oficial")
         cat_bovino = models.CategoriaGanado(nombre="Bovino")
         tipo_doc_ine = models.TipoDoc(nombre="Identificación Oficial", descripcion="INE o Pasaporte")
+        enfermedad_garrapata = models.Enfermedad(nombre="Garrapata", porcentaje_penalizacion=5.0, requiere_cuarentena=True)
         
-        db.add_all([estado_activo, rol_productor, rol_vet, cat_bovino, tipo_doc_ine])
+        db.add_all([estado_activo, rol_productor, rol_vet, cat_bovino, tipo_doc_ine, enfermedad_garrapata])
         db.commit()
 
         # 2. Catálogos Dependientes
         raza_angus = models.Raza(id_categoria=cat_bovino.id_categoria, nombre="Angus", descripcion="Productora de carne")
-        db.add(raza_angus)
+        precio_bovino = models.Precio(
+            id_categoria=cat_bovino.id_categoria,
+            precio_base_kilo=68.5,
+            fecha_vigencia=datetime.utcnow(),
+            activo=True,
+        )
+        db.add_all([raza_angus, precio_bovino])
         db.commit()
 
         # 3. Identidad y Perfiles (Usamos la función de crud para hashear la contraseña)
@@ -53,9 +60,33 @@ def poblar_base_de_datos():
         animal_vaca = models.Animal(
             arete_id="MX-123456", id_productor=prod_juan.id_productor, id_raza=raza_angus.id_raza,
             id_estado=estado_activo.id_estado, sexo="M", edad=24, peso_kg=450.5, tiene_crias=False,
-            proposito_produccion="Carne", condicion_general="Sano y con buen desarrollo"
+            proposito_produccion="Carne", condicion_general="Sano y con buen desarrollo",
+            notas="Ejemplar de prueba",
+            color_pelaje="Negro",
+            estado_salud="Sano",
+            foto_frontal="https://mi-bucket.com/animal/frontal.jpg",
+            foto_lateral="https://mi-bucket.com/animal/lateral.jpg",
         )
         db.add(animal_vaca)
+        db.commit()
+
+        precio_animal = models.PrecioAnimal(
+            id_precio=precio_bovino.id_precio,
+            id_animal=animal_vaca.id_animal,
+            valor_agregado=12.0,
+            modificador_porcentual=3.0,
+            precio_base_aplicado=68.5,
+            peso_al_calculo=450.5,
+            precio_final=83.0,
+            fecha_calculo=datetime.utcnow(),
+        )
+        enfermedad_animal = models.EnfermedadAnimal(
+            id_enfermedad=enfermedad_garrapata.id_enfermedad,
+            id_animal=animal_vaca.id_animal,
+            fecha_deteccion=datetime.utcnow(),
+            estado="Activa",
+        )
+        db.add_all([precio_animal, enfermedad_animal])
         db.commit()
 
         solicitud = models.SolicitudCertificacion(
@@ -76,7 +107,8 @@ def poblar_base_de_datos():
         documento = models.Documento(
             id_usuario_subio=user_juan.id_usuario, id_validador=user_maria.id_usuario,
             id_estado=estado_activo.id_estado, id_tipo_doc=tipo_doc_ine.id_tipo_doc,
-            uri_archivo="https://mi-bucket.com/ine_juan.pdf", notas="Documento legible"
+            url_archivo="https://mi-bucket.com/ine_juan.pdf", notas="Documento legible",
+            fecha_subida=datetime.utcnow(),
         )
         db.add(documento)
         db.commit()

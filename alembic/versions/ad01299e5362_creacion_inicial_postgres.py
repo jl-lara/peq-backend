@@ -52,7 +52,9 @@ def upgrade() -> None:
     op.create_table('precio',
     sa.Column('id_precio', sa.Integer(), nullable=False),
     sa.Column('id_categoria', sa.Integer(), nullable=False),
-    sa.Column('precio_mercado', sa.Float(), nullable=False),
+    sa.Column('precio_base_kilo', sa.Float(), nullable=False),
+    sa.Column('fecha_vigencia', sa.DateTime(), nullable=False),
+    sa.Column('activo', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['id_categoria'], ['categoria_ganado.id_categoria'], ),
     sa.PrimaryKeyConstraint('id_precio')
     )
@@ -63,6 +65,13 @@ def upgrade() -> None:
     sa.Column('descripcion', sa.String(length=255), nullable=True),
     sa.ForeignKeyConstraint(['id_categoria'], ['categoria_ganado.id_categoria'], ),
     sa.PrimaryKeyConstraint('id_raza')
+    )
+    op.create_table('enfermedad',
+    sa.Column('id_enfermedad', sa.Integer(), nullable=False),
+    sa.Column('nombre', sa.String(length=100), nullable=False),
+    sa.Column('porcentaje_penalizacion', sa.Float(), nullable=False),
+    sa.Column('requiere_cuarentena', sa.Boolean(), nullable=False),
+    sa.PrimaryKeyConstraint('id_enfermedad')
     )
     op.create_table('requisitos_docs_rol',
     sa.Column('id_rol', sa.Integer(), nullable=False),
@@ -113,20 +122,21 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id_docs_vet'),
     sa.UniqueConstraint('id_usuario')
     )
-    op.create_table('documentos',
-    sa.Column('id_documento', sa.Integer(), nullable=False),
+    op.create_table('documentos_animal',
+    sa.Column('id_doc_animal', sa.Integer(), nullable=False),
     sa.Column('id_usuario_subio', sa.Integer(), nullable=False),
     sa.Column('id_validador', sa.Integer(), nullable=True),
     sa.Column('id_estado', sa.Integer(), nullable=False),
     sa.Column('id_tipo_doc', sa.Integer(), nullable=False),
-    sa.Column('uri_archivo', sa.String(length=500), nullable=False),
+    sa.Column('url_archivo', sa.String(length=500), nullable=False),
     sa.Column('notas', sa.Text(), nullable=True),
+    sa.Column('fecha_subida', sa.DateTime(), nullable=False),
     sa.Column('fecha_revision', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['id_estado'], ['estados.id_estado'], ),
     sa.ForeignKeyConstraint(['id_tipo_doc'], ['tipo_doc.id_tipo_doc'], ),
     sa.ForeignKeyConstraint(['id_usuario_subio'], ['usuarios.id_usuario'], ),
     sa.ForeignKeyConstraint(['id_validador'], ['usuarios.id_usuario'], ),
-    sa.PrimaryKeyConstraint('id_documento')
+    sa.PrimaryKeyConstraint('id_doc_animal')
     )
     op.create_table('productores',
     sa.Column('id_productor', sa.Integer(), nullable=False),
@@ -151,6 +161,11 @@ def upgrade() -> None:
     sa.Column('tiene_crias', sa.Boolean(), nullable=False),
     sa.Column('proposito_produccion', sa.String(length=100), nullable=False),
     sa.Column('condicion_general', sa.String(length=255), nullable=True),
+    sa.Column('notas', sa.Text(), nullable=True),
+    sa.Column('color_pelaje', sa.String(length=100), nullable=True),
+    sa.Column('estado_salud', sa.String(length=100), nullable=True),
+    sa.Column('foto_frontal', sa.String(length=500), nullable=True),
+    sa.Column('foto_lateral', sa.String(length=500), nullable=True),
     sa.Column('fecha_registro', sa.DateTime(), nullable=False),
     sa.Column('fecha_certificacion', sa.DateTime(), nullable=True),
     sa.Column('fecha_actualizacion', sa.DateTime(), nullable=True),
@@ -165,11 +180,24 @@ def upgrade() -> None:
     op.create_table('precio_animal',
     sa.Column('id_precio', sa.Integer(), nullable=False),
     sa.Column('id_animal', sa.Integer(), nullable=False),
-    sa.Column('precio_calidad', sa.Float(), nullable=True),
+    sa.Column('valor_agregado', sa.Float(), nullable=True),
+    sa.Column('modificador_porcentual', sa.Float(), nullable=True),
+    sa.Column('precio_base_aplicado', sa.Float(), nullable=True),
+    sa.Column('peso_al_calculo', sa.Float(), nullable=True),
     sa.Column('precio_final', sa.Float(), nullable=True),
+    sa.Column('fecha_calculo', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['id_animal'], ['animal.id_animal'], ),
     sa.ForeignKeyConstraint(['id_precio'], ['precio.id_precio'], ),
     sa.PrimaryKeyConstraint('id_precio', 'id_animal')
+    )
+    op.create_table('enfermedad_animal',
+    sa.Column('id_enfermedad', sa.Integer(), nullable=False),
+    sa.Column('id_animal', sa.Integer(), nullable=False),
+    sa.Column('fecha_deteccion', sa.DateTime(), nullable=False),
+    sa.Column('estado', sa.String(length=50), nullable=False),
+    sa.ForeignKeyConstraint(['id_animal'], ['animal.id_animal'], ),
+    sa.ForeignKeyConstraint(['id_enfermedad'], ['enfermedad.id_enfermedad'], ),
+    sa.PrimaryKeyConstraint('id_enfermedad', 'id_animal')
     )
     op.create_table('solicitudes_certificacion',
     sa.Column('id_solicitud', sa.Integer(), nullable=False),
@@ -204,10 +232,12 @@ def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('certificaciones')
     op.drop_table('solicitudes_certificacion')
+    op.drop_table('enfermedad_animal')
     op.drop_table('precio_animal')
     op.drop_table('animal')
+    op.drop_table('documentos_animal')
+    op.drop_table('enfermedad')
     op.drop_table('productores')
-    op.drop_table('documentos')
     op.drop_table('datos_veterinarios')
     op.drop_table('bitacora')
     op.drop_table('usuarios')

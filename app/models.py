@@ -70,7 +70,9 @@ class Precio(Base):
     __tablename__ = "precio"
     id_precio: Mapped[int] = mapped_column(primary_key=True)
     id_categoria: Mapped[int] = mapped_column(ForeignKey("categoria_ganado.id_categoria"))
-    precio_mercado: Mapped[float] = mapped_column(Float, nullable=False)
+    precio_base_kilo: Mapped[float] = mapped_column(Float, nullable=False)
+    fecha_vigencia: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
     categoria: Mapped["CategoriaGanado"] = relationship(back_populates="precios")
     precios_animales: Mapped[List["PrecioAnimal"]] = relationship(back_populates="precio")
@@ -91,11 +93,34 @@ class PrecioAnimal(Base):
     __tablename__ = "precio_animal"
     id_precio: Mapped[int] = mapped_column(ForeignKey("precio.id_precio"), primary_key=True)
     id_animal: Mapped[int] = mapped_column(ForeignKey("animal.id_animal"), primary_key=True)
-    precio_calidad: Mapped[Optional[float]] = mapped_column(Float)
+    valor_agregado: Mapped[Optional[float]] = mapped_column(Float)
+    modificador_porcentual: Mapped[Optional[float]] = mapped_column(Float)
+    precio_base_aplicado: Mapped[Optional[float]] = mapped_column(Float)
+    peso_al_calculo: Mapped[Optional[float]] = mapped_column(Float)
     precio_final: Mapped[Optional[float]] = mapped_column(Float)
+    fecha_calculo: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
     precio: Mapped["Precio"] = relationship(back_populates="precios_animales")
     animal: Mapped["Animal"] = relationship(back_populates="precios_animales")
+
+class Enfermedad(Base):
+    __tablename__ = "enfermedad"
+    id_enfermedad: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    porcentaje_penalizacion: Mapped[float] = mapped_column(Float, nullable=False)
+    requiere_cuarentena: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    animales: Mapped[List["EnfermedadAnimal"]] = relationship(back_populates="enfermedad")
+
+class EnfermedadAnimal(Base):
+    __tablename__ = "enfermedad_animal"
+    id_enfermedad: Mapped[int] = mapped_column(ForeignKey("enfermedad.id_enfermedad"), primary_key=True)
+    id_animal: Mapped[int] = mapped_column(ForeignKey("animal.id_animal"), primary_key=True)
+    fecha_deteccion: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    estado: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    enfermedad: Mapped["Enfermedad"] = relationship(back_populates="animales")
+    animal: Mapped["Animal"] = relationship(back_populates="enfermedades")
 
 # ==========================================
 # 4. NÚCLEO DE USUARIOS Y ROLES
@@ -168,6 +193,11 @@ class Animal(Base):
     tiene_crias: Mapped[bool] = mapped_column(Boolean, default=False)
     proposito_produccion: Mapped[str] = mapped_column(String(100)) 
     condicion_general: Mapped[Optional[str]] = mapped_column(String(255))
+    notas: Mapped[Optional[str]] = mapped_column(Text)
+    color_pelaje: Mapped[Optional[str]] = mapped_column(String(100))
+    estado_salud: Mapped[Optional[str]] = mapped_column(String(100))
+    foto_frontal: Mapped[Optional[str]] = mapped_column(String(500))
+    foto_lateral: Mapped[Optional[str]] = mapped_column(String(500))
     fecha_registro: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     fecha_certificacion: Mapped[Optional[datetime]] = mapped_column(DateTime)
     fecha_actualizacion: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
@@ -177,17 +207,19 @@ class Animal(Base):
     estado: Mapped["Estado"] = relationship(back_populates="animales")
     raza: Mapped["Raza"] = relationship(back_populates="animales")
     precios_animales: Mapped[List["PrecioAnimal"]] = relationship(back_populates="animal")
+    enfermedades: Mapped[List["EnfermedadAnimal"]] = relationship(back_populates="animal")
     solicitudes: Mapped[List["SolicitudCertificacion"]] = relationship(back_populates="animal")
 
 class Documento(Base):
-    __tablename__ = "documentos"
-    id_documento: Mapped[int] = mapped_column(primary_key=True)
+    __tablename__ = "documentos_animal"
+    id_doc_animal: Mapped[int] = mapped_column(primary_key=True)
     id_usuario_subio: Mapped[int] = mapped_column(ForeignKey("usuarios.id_usuario"))
     id_validador: Mapped[Optional[int]] = mapped_column(ForeignKey("usuarios.id_usuario"))
     id_estado: Mapped[int] = mapped_column(ForeignKey("estados.id_estado"))
     id_tipo_doc: Mapped[int] = mapped_column(ForeignKey("tipo_doc.id_tipo_doc"))
-    uri_archivo: Mapped[str] = mapped_column(String(500), nullable=False)
+    url_archivo: Mapped[str] = mapped_column(String(500), nullable=False)
     notas: Mapped[Optional[str]] = mapped_column(Text)
+    fecha_subida: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     fecha_revision: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
     usuario_subio: Mapped["Usuario"] = relationship(foreign_keys=[id_usuario_subio], back_populates="documentos_subidos")

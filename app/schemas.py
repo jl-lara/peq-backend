@@ -51,6 +51,7 @@ class UsuarioCreate(UsuarioBase):
 
 class UsuarioResponse(UsuarioBase):
     id_usuario: int
+    fecha_registro: datetime
     # ¡No incluimos el password aquí por seguridad!
 
     class Config:
@@ -89,13 +90,21 @@ class AnimalBase(BaseModel):
     tiene_crias: bool = False
     proposito_produccion: str
     condicion_general: Optional[str] = None
+    notas: Optional[str] = None
+    color_pelaje: Optional[str] = None
+    estado_salud: Optional[str] = None
+    foto_frontal: Optional[str] = None
+    foto_lateral: Optional[str] = None
 
 class AnimalCreate(AnimalBase):
     pass
 
 class AnimalResponse(AnimalBase):
     id_animal: int
-    # No exponemos campos autogenerados de auditoría por ahora
+    fecha_registro: datetime
+    fecha_certificacion: Optional[datetime] = None
+    fecha_actualizacion: Optional[datetime] = None
+    token_qr: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -201,15 +210,16 @@ class DocumentoBase(BaseModel):
     id_validador: Optional[int] = None
     id_estado: int
     id_tipo_doc: int
-    uri_archivo: str
+    url_archivo: str
     notas: Optional[str] = None
+    fecha_subida: Optional[datetime] = None
     fecha_revision: Optional[datetime] = None
 
 class DocumentoCreate(DocumentoBase):
     pass
 
 class DocumentoResponse(DocumentoBase):
-    id_documento: int
+    id_doc_animal: int
 
     class Config:
         from_attributes = True
@@ -245,7 +255,9 @@ class RazaResponse(RazaBase):
 
 class PrecioBase(BaseModel):
     id_categoria: int
-    precio_mercado: float
+    precio_base_kilo: float
+    fecha_vigencia: Optional[datetime] = None
+    activo: bool = True
 
 class PrecioCreate(PrecioBase):
     pass
@@ -253,6 +265,50 @@ class PrecioCreate(PrecioBase):
 class PrecioResponse(PrecioBase):
     id_precio: int
 
+    class Config:
+        from_attributes = True
+
+class PrecioAnimalBase(BaseModel):
+    id_precio: int
+    id_animal: int
+    valor_agregado: Optional[float] = None
+    modificador_porcentual: Optional[float] = None
+    precio_base_aplicado: Optional[float] = None
+    peso_al_calculo: Optional[float] = None
+    precio_final: Optional[float] = None
+    fecha_calculo: Optional[datetime] = None
+
+class PrecioAnimalCreate(PrecioAnimalBase):
+    pass
+
+class PrecioAnimalResponse(PrecioAnimalBase):
+    class Config:
+        from_attributes = True
+
+class EnfermedadBase(BaseModel):
+    nombre: str
+    porcentaje_penalizacion: float
+    requiere_cuarentena: bool = False
+
+class EnfermedadCreate(EnfermedadBase):
+    pass
+
+class EnfermedadResponse(EnfermedadBase):
+    id_enfermedad: int
+
+    class Config:
+        from_attributes = True
+
+class EnfermedadAnimalBase(BaseModel):
+    id_enfermedad: int
+    id_animal: int
+    fecha_deteccion: Optional[datetime] = None
+    estado: str
+
+class EnfermedadAnimalCreate(EnfermedadAnimalBase):
+    pass
+
+class EnfermedadAnimalResponse(EnfermedadAnimalBase):
     class Config:
         from_attributes = True
 
