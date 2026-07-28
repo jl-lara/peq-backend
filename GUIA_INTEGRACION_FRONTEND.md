@@ -15,7 +15,7 @@
 
 ### Observación clave de seguridad funcional
 
-Aunque existe endpoint de login y token JWT, **actualmente los endpoints de negocio no están protegidos por dependencia de auth** (no hay `OAuth2PasswordBearer` ni `get_current_user` aplicado en rutas).
+Los endpoints de negocio están protegidos con JWT usando `OAuth2PasswordBearer` y `get_current_user`.
 
 ---
 
@@ -30,7 +30,7 @@ Aunque existe endpoint de login y token JWT, **actualmente los endpoints de nego
 
 - **Login:** `Content-Type: application/x-www-form-urlencoded`
 - **Resto de endpoints:** `Content-Type: application/json`
-- **Auth recomendada (futuro-compatible):** enviar header `Authorization` con esquema `Bearer` y el JWT de sesión.
+- **Auth obligatoria en negocio:** enviar header `Authorization` con esquema `Bearer` y el JWT de sesión en todas las rutas excepto `/` y `/login`.
 
 ## Versionado API
 
@@ -39,8 +39,8 @@ Aunque existe endpoint de login y token JWT, **actualmente los endpoints de nego
 
 ## CORS
 
-- No se encontró configuración de `CORSMiddleware` en `main.py`.
-- Si frontend se despliega en otro dominio, se deberá habilitar CORS en backend.
+- `CORSMiddleware` está habilitado en backend.
+- Orígenes permitidos se controlan con `CORS_ALLOWED_ORIGINS` (lista separada por comas).
 
 ---
 
@@ -65,79 +65,79 @@ Aunque existe endpoint de login y token JWT, **actualmente los endpoints de nego
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/estados/` | Crear estado | No |
-| GET | `/estados/` | Listar estados (`skip`, `limit`) | No |
+| POST | `/estados/` | Crear estado | Sí |
+| GET | `/estados/` | Listar estados (`skip`, `limit`) | Sí |
 
 ### 3.4 Catálogos - Roles
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/roles/` | Crear rol | No |
-| GET | `/roles/` | Listar roles (`skip`, `limit`) | No |
+| POST | `/roles/` | Crear rol | Sí |
+| GET | `/roles/` | Listar roles (`skip`, `limit`) | Sí |
 
 ### 3.5 Usuarios
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/usuarios/` | Crear usuario | No |
-| GET | `/usuarios/` | Listar usuarios (`skip`, `limit`) | No |
+| POST | `/usuarios/` | Crear usuario | Sí |
+| GET | `/usuarios/` | Listar usuarios (`skip`, `limit`) | Sí |
 
 ### 3.6 Productores
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/productores/` | Crear productor | No |
-| GET | `/productores/` | Listar productores (`skip`, `limit`) | No |
+| POST | `/productores/` | Crear productor | Sí |
+| GET | `/productores/` | Listar productores (`skip`, `limit`) | Sí |
 
 ### 3.7 Animales
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/animales/` | Crear animal | No |
-| GET | `/animales/` | Listar animales (`skip`, `limit`) | No |
+| POST | `/animales/` | Crear animal | Sí |
+| GET | `/animales/` | Listar animales (`skip`, `limit`) | Sí |
 
 ### 3.8 Flujo certificación (veterinarios)
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/veterinarios/` | Crear perfil veterinario | No |
-| GET | `/veterinarios/` | Listar perfiles veterinarios (`skip`, `limit`) | No |
+| POST | `/veterinarios/` | Crear perfil veterinario | Sí |
+| GET | `/veterinarios/` | Listar perfiles veterinarios (`skip`, `limit`) | Sí |
 
 ### 3.9 Flujo certificación (solicitudes)
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/solicitudes/` | Crear solicitud de certificación | No |
-| GET | `/solicitudes/` | Listar solicitudes (`skip`, `limit`) | No |
+| POST | `/solicitudes/` | Crear solicitud de certificación | Sí |
+| GET | `/solicitudes/` | Listar solicitudes (`skip`, `limit`) | Sí |
 
 ### 3.10 Flujo certificación (certificaciones)
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/certificaciones/` | Emitir certificación | No |
-| GET | `/certificaciones/` | Listar certificaciones (`skip`, `limit`) | No |
+| POST | `/certificaciones/` | Emitir certificación | Sí |
+| GET | `/certificaciones/` | Listar certificaciones (`skip`, `limit`) | Sí |
 
 ### 3.11 Gestión documental
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/tipos-documentos/` | Crear tipo de documento | No |
-| GET | `/tipos-documentos/` | Listar tipos (`skip`, `limit`) | No |
-| POST | `/requisitos-documentos/` | Crear requisito documental por rol | No |
-| GET | `/requisitos-documentos/` | Listar requisitos (`skip`, `limit`) | No |
-| POST | `/documentos/` | Crear registro documental | No |
-| GET | `/documentos/` | Listar documentos (`skip`, `limit`) | No |
+| POST | `/tipos-documentos/` | Crear tipo de documento | Sí |
+| GET | `/tipos-documentos/` | Listar tipos (`skip`, `limit`) | Sí |
+| POST | `/requisitos-documentos/` | Crear requisito documental por rol | Sí |
+| GET | `/requisitos-documentos/` | Listar requisitos (`skip`, `limit`) | Sí |
+| POST | `/documentos/` | Crear registro documental | Sí |
+| GET | `/documentos/` | Listar documentos (`skip`, `limit`) | Sí |
 
 ### 3.12 Catálogos ganaderos
 
 | Método | Path | Propósito | Auth |
 |---|---|---|---|
-| POST | `/categorias-ganado/` | Crear categoría de ganado | No |
-| GET | `/categorias-ganado/` | Listar categorías (`skip`, `limit`) | No |
-| POST | `/razas/` | Crear raza | No |
-| GET | `/razas/` | Listar razas (`skip`, `limit`) | No |
-| POST | `/precios/` | Crear precio de mercado | No |
-| GET | `/precios/` | Listar precios (`skip`, `limit`) | No |
+| POST | `/categorias-ganado/` | Crear categoría de ganado | Sí |
+| GET | `/categorias-ganado/` | Listar categorías (`skip`, `limit`) | Sí |
+| POST | `/razas/` | Crear raza | Sí |
+| GET | `/razas/` | Listar razas (`skip`, `limit`) | Sí |
+| POST | `/precios/` | Crear precio de mercado | Sí |
+| GET | `/precios/` | Listar precios (`skip`, `limit`) | Sí |
 
 ---
 
@@ -163,6 +163,7 @@ Aunque existe endpoint de login y token JWT, **actualmente los endpoints de nego
 
 Para todos los módulos siguientes:
 - `GET` admite `skip` y `limit`.
+- `GET` admite filtros por query params según el recurso (por ejemplo: `id_estado`, `id_rol`, rangos de fecha/peso/edad, etc.).
 - `GET` retorna array del esquema response.
 - `POST` retorna objeto creado.
 - `422` por validación.
@@ -256,7 +257,7 @@ Para todos los módulos siguientes:
 1. Pantalla login (form-data).
 2. Si 200: guardar `access_token` (local storage/memory).
 3. Si 401: error de credenciales.
-4. Aunque hoy no sea obligatorio, enviar header `Authorization` para compatibilidad futura.
+4. Enviar siempre el header `Authorization` con esquema `Bearer` y el token de `/login` en todas las rutas de negocio.
 
 ## 5.2 Flujo de carga de catálogos
 
@@ -366,13 +367,13 @@ export async function crearAnimal(payload: {
 
 ## 8) Huecos/inconsistencias backend que impactan frontend
 
-1. **Auth no aplicada a rutas de negocio** pese a existir login.
-2. **Sin PUT/PATCH/DELETE**, por lo que no hay edición/baja API.
-3. **Sin filtros por negocio**; solo paginación `skip/limit`.
-4. **Sin endpoints para bitácora/acciones** aunque existen tablas de auditoría.
+1. **Auth aplicada por JWT**: todos los endpoints de negocio requieren token; solo health y login quedan públicos.
+2. **Sin PATCH parcial**: ya existen rutas `PUT` y `DELETE`, pero no actualización parcial con `PATCH`.
+3. **Sin búsqueda textual avanzada** (full-text o filtros compuestos complejos); hoy existen filtros de negocio por query params.
+4. **Sin automatización de auditoría**: existen endpoints de `bitácoras` y `acciones`, pero el registro no se dispara automáticamente en cada operación de negocio.
 5. **Sin upload binario de archivos**; solo `uri_archivo`.
-6. **Sin CORS explícito** para despliegue cross-domain.
-7. **Estados de negocio no cerrados por enum**; dependen de catálogo parametrizable.
+6. **CORS depende de configuración de entorno**: si falta `CORS_ALLOWED_ORIGINS` para dominios reales, el navegador bloqueará llamadas cross-domain.
+7. **Estados con catálogo oficial por flujo**: el backend valida estados permitidos al crear/actualizar.
 
 ---
 

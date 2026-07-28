@@ -1,11 +1,32 @@
+from datetime import datetime
+
 from pydantic import BaseModel
+from pydantic import field_validator, model_validator
 from typing import Optional
+
+OFFICIAL_STATES_BY_FLOW: dict[str, set[str]] = {
+    "usuario": {"ACTIVO", "INACTIVO", "BLOQUEADO"},
+    "animal": {"REGISTRADO", "EN_REVISION", "CERTIFICADO", "RECHAZADO"},
+    "solicitud": {"PENDIENTE", "EN_REVISION", "APROBADO", "RECHAZADO"},
+    "documento": {"PENDIENTE", "EN_REVISION", "APROBADO", "RECHAZADO"},
+}
+OFFICIAL_STATE_NAMES: set[str] = set().union(*OFFICIAL_STATES_BY_FLOW.values())
 
 # ==========================================
 # ESQUEMAS PARA 'ESTADOS'
 # ==========================================
 class EstadoBase(BaseModel):
     nombre: str
+
+    @field_validator("nombre")
+    @classmethod
+    def validar_estado_oficial(cls, value: str) -> str:
+        nombre = value.strip().upper()
+        if nombre not in OFFICIAL_STATE_NAMES:
+            raise ValueError(
+                "nombre de estado no oficial. Usa uno del catálogo estándar por flujo."
+            )
+        return nombre
 
 class EstadoCreate(EstadoBase):
     pass
@@ -28,6 +49,22 @@ class RolCreate(RolBase):
 
 class RolResponse(RolBase):
     id_rol: int
+
+    class Config:
+        from_attributes = True
+
+# ==========================================
+# ESQUEMAS PARA 'ACCIONES'
+# ==========================================
+class AccionBase(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+
+class AccionCreate(AccionBase):
+    pass
+
+class AccionResponse(AccionBase):
+    id_accion: int
 
     class Config:
         from_attributes = True
@@ -96,6 +133,28 @@ class AnimalBase(BaseModel):
     foto_frontal: Optional[str] = None
     foto_lateral: Optional[str] = None
 
+    @field_validator("sexo")
+    @classmethod
+    def validar_sexo(cls, value: str) -> str:
+        sexo = value.strip().upper()
+        if sexo not in {"M", "F"}:
+            raise ValueError("sexo debe ser 'M' o 'F'")
+        return sexo
+
+    @field_validator("edad")
+    @classmethod
+    def validar_edad(cls, value: int) -> int:
+        if value < 0 or value > 40:
+            raise ValueError("edad debe estar entre 0 y 40")
+        return value
+
+    @field_validator("peso_kg")
+    @classmethod
+    def validar_peso(cls, value: float) -> float:
+        if value <= 0 or value > 3000:
+            raise ValueError("peso_kg debe ser mayor a 0 y menor o igual a 3000")
+        return value
+
 class AnimalCreate(AnimalBase):
     pass
 
@@ -130,7 +189,6 @@ class DatosVeterinariosResponse(DatosVeterinariosBase):
 # ==========================================
 # ESQUEMAS PARA 'SOLICITUDES DE CERTIFICACIÓN'
 # ==========================================
-from datetime import datetime
 
 class SolicitudCertificacionBase(BaseModel):
     id_estado: int
@@ -138,6 +196,14 @@ class SolicitudCertificacionBase(BaseModel):
     id_veterinario: Optional[int] = None
     fecha_revision: Optional[datetime] = None
     fecha_dictamen: Optional[datetime] = None
+
+    @model_validator(mode="after")
+    def validar_fechas(self):
+        if self.fecha_dictamen and not self.fecha_revision:
+            raise ValueError("fecha_dictamen requiere fecha_revision")
+        if self.fecha_revision and self.fecha_dictamen and self.fecha_dictamen < self.fecha_revision:
+            raise ValueError("fecha_dictamen no puede ser anterior a fecha_revision")
+        return self
 
 class SolicitudCertificacionCreate(SolicitudCertificacionBase):
     pass
@@ -158,6 +224,22 @@ class CertificacionBase(BaseModel):
     caracteristicas_validades: str
     observaciones_medicas: Optional[str] = None
     dictamen: str
+
+    @field_validator("peso_validado")
+    @classmethod
+    def validar_peso_validado(cls, value: float) -> float:
+        if value <= 0 or value > 3000:
+            raise ValueError("peso_validado debe ser mayor a 0 y menor o igual a 3000")
+        return value
+
+    @field_validator("dictamen")
+    @classmethod
+    def validar_dictamen(cls, value: str) -> str:
+        dictamen = value.strip().upper()
+        permitidos = {"APROBADO", "RECHAZADO", "OBSERVADO"}
+        if dictamen not in permitidos:
+            raise ValueError("dictamen debe ser APROBADO, RECHAZADO u OBSERVADO")
+        return dictamen
 
 class CertificacionCreate(CertificacionBase):
     pass
@@ -196,6 +278,9 @@ class RequisitoDocRolBase(BaseModel):
 class RequisitoDocRolCreate(RequisitoDocRolBase):
     pass
 
+class RequisitoDocRolUpdate(BaseModel):
+    obligatorio: bool
+
 class RequisitoDocRolResponse(RequisitoDocRolBase):
     class Config:
         from_attributes = True
@@ -203,7 +288,6 @@ class RequisitoDocRolResponse(RequisitoDocRolBase):
 # ==========================================
 # ESQUEMAS PARA 'DOCUMENTOS'
 # ==========================================
-from datetime import datetime
 
 class DocumentoBase(BaseModel):
     id_usuario_subio: int
@@ -220,6 +304,26 @@ class DocumentoCreate(DocumentoBase):
 
 class DocumentoResponse(DocumentoBase):
     id_doc_animal: int
+
+    class Config:
+        from_attributes = True
+
+# ==========================================
+# ESQUEMAS PARA 'BITÁCORA'
+# ==========================================
+class BitacoraBase(BaseModel):
+    id_usuario: int
+    id_accion: int
+    tabla_afectada: str
+    valor_anterior: Optional[str] = None
+    valor_nuevo: Optional[str] = None
+    fecha_cambio: Optional[datetime] = None
+
+class BitacoraCreate(BitacoraBase):
+    pass
+
+class BitacoraResponse(BitacoraBase):
+    id_bitacora: int
 
     class Config:
         from_attributes = True
@@ -290,6 +394,13 @@ class EnfermedadBase(BaseModel):
     porcentaje_penalizacion: float
     requiere_cuarentena: bool = False
 
+    @field_validator("porcentaje_penalizacion")
+    @classmethod
+    def validar_porcentaje_penalizacion(cls, value: float) -> float:
+        if value < 0 or value > 100:
+            raise ValueError("porcentaje_penalizacion debe estar entre 0 y 100")
+        return value
+
 class EnfermedadCreate(EnfermedadBase):
     pass
 
@@ -304,6 +415,15 @@ class EnfermedadAnimalBase(BaseModel):
     id_animal: int
     fecha_deteccion: Optional[datetime] = None
     estado: str
+
+    @field_validator("estado")
+    @classmethod
+    def validar_estado_enfermedad(cls, value: str) -> str:
+        estado = value.strip().upper()
+        permitidos = {"ACTIVA", "CONTROLADA", "RECUPERADA"}
+        if estado not in permitidos:
+            raise ValueError("estado debe ser ACTIVA, CONTROLADA o RECUPERADA")
+        return estado
 
 class EnfermedadAnimalCreate(EnfermedadAnimalBase):
     pass

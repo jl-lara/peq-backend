@@ -30,6 +30,7 @@ La API está protegida mediante Tokens JWT. Para interactuar con los endpoints s
    Authorization: Bearer <tu_access_token>
 
 ```
+   *Solo `/` (health check) y `/login` son públicos.*
 
 ### Orden Lógico de Registro (Reglas de Negocio)
 
@@ -39,6 +40,21 @@ Debido a la integridad de la base de datos (Llaves Foráneas), el orden para cre
 2. Asignarle el rol de `Productor` (vinculado al ID del Usuario).
 3. Registrar el `Animal` (vinculado al ID del Productor, ID de Raza e ID de Estado).
 4. Generar la `Solicitud de Certificación` (vinculando al Animal y al Veterinario).
+
+Validaciones de dominio activas en API:
+- `Animal.sexo`: solo `M` o `F`.
+- `Animal.edad`: rango permitido `0` a `40`.
+- `Animal.peso_kg` y `Certificacion.peso_validado`: mayor a `0` y hasta `3000`.
+- `Certificacion.dictamen`: `APROBADO`, `RECHAZADO` u `OBSERVADO`.
+- `SolicitudCertificacion`: `fecha_dictamen` requiere `fecha_revision` y no puede ser menor.
+- Catálogo oficial de estados (normalizado a mayúsculas):
+  - `usuario`: `ACTIVO`, `INACTIVO`, `BLOQUEADO`
+  - `animal`: `REGISTRADO`, `EN_REVISION`, `CERTIFICADO`, `RECHAZADO`
+  - `solicitud` y `documento`: `PENDIENTE`, `EN_REVISION`, `APROBADO`, `RECHAZADO`
+- Endpoints operativos: además de `POST/GET`, los recursos principales ya cuentan con `PUT` y `DELETE`.
+- Endpoints `GET` principales: soportan filtros de negocio por query params (además de `skip`/`limit`).
+- Auditoría y pricing por animal expuestos: endpoints para `acciones`, `bitácoras` y `precios-animales`.
+- CORS habilitado con `CORSMiddleware` y orígenes configurables por `CORS_ALLOWED_ORIGINS` (separados por comas).
 
 ---
 
@@ -67,6 +83,9 @@ En la configuración de Render, ve a la sección de "Environment" y agrega las v
 
 * `DATABASE_URL`: `postgresql://tu_usuario:tu_password@ruta_interna_de_render/peq_db` *(Usa la "Internal Database URL" que te da Render en tu instancia de Postgres para mayor velocidad).*
 * `SECRET_KEY`: `escribe_aqui_una_clave_secreta_muy_larga_y_segura`
+* `CORS_ALLOWED_ORIGINS`: `https://tu-frontend.com,https://admin.tu-frontend.com`
+
+> `SECRET_KEY` es obligatoria. Si no está definida, la API no inicia.
 
 ### 4. Desplegar y Migrar
 
