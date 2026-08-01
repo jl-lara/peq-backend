@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Ahora sí, Python ya sabe qué es "app"
+from app.database import get_database_url
 from app.models import Base
 
 # 1. Cargar las variables del archivo .env
@@ -25,8 +26,8 @@ from app.models import Base
 # Este es el objeto de configuración de Alembic
 config = context.config
 
-# 3. Inyectar la URL de la base de datos usando el .env de forma segura
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+# 3. Inyectar la URL de la base de datos usando la misma lógica que la app
+config.set_main_option("sqlalchemy.url", get_database_url())
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
