@@ -72,6 +72,7 @@ def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
 
 @public_router.post("/login", response_model=schemas.Token, tags=["Autenticación"])
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # 1. Validamos al usuario
     user = crud.authenticate_user(db=db, username=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
@@ -79,5 +80,19 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             detail="Usuario o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = auth.create_access_token(data={"sub": user.usuario})
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    # 2. Inyectamos toda la información necesaria dentro del token
+    # Asegúrate de que los nombres de los atributos (user.id_usuario, user.nombre, etc.)
+    # coincidan exactamente con cómo están definidos en tu modelo (models.Usuario)
+    token_payload = {
+        "sub": user.usuario,
+        "id_usuario": user.id_usuario,
+        "nombre": user.nombre,
+        "apellido_paterno": user.apellido_paterno,
+        "id_rol": user.id_rol
+    }
+    
+    access_token = auth.create_access_token(data=token_payload)
+    
+    # 3. Retornamos el token al frontend
+    return {"access_token": access_token, "token_type": "bearer", "id_rol": user.id_rol}

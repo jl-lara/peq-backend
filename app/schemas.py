@@ -438,6 +438,7 @@ class EnfermedadAnimalResponse(EnfermedadAnimalBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    id_rol: int
 
 class TokenData(BaseModel):
     username: Optional[str] = None
