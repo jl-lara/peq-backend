@@ -185,7 +185,7 @@ def leer_documentos_revision(
 	)
 
 
-@router.get("/perfil/", response_model=schemas.PerfilAdministradorResponse, tags=["Panel Administrador"])
+@router.get("/perfil-administrador/", response_model=schemas.PerfilAdministradorResponse, tags=["Panel Administrador"])
 def leer_perfil_administrador(current_user=Depends(require_admin_user), db: Session = Depends(get_db)):
 	perfil = crud.get_perfil_administrador(db=db, usuario_actual=current_user)
 	if perfil is None:

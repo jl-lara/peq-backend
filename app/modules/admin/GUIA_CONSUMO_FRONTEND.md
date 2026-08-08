@@ -165,7 +165,7 @@ Campos principales de respuesta:
 Devuelve la información del usuario logueado.
 
 - Método: `GET`
-- Ruta: `/perfil/`
+- Ruta: `/perfil-administrador/`
 
 Ejemplo de respuesta:
 
