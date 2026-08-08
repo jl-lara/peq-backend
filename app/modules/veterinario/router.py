@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -9,7 +9,45 @@ from app.database import get_db
 
 from . import crud, schemas
 
-router = APIRouter(dependencies=[Depends(auth.get_current_user)])
+
+
+def require_veterinario_user(current_user=Depends(auth.get_current_user)):
+	if current_user.id_rol != 2:
+		raise HTTPException(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail="No tienes permisos para acceder al panel de veterinario",
+		)
+	return current_user
+
+
+router = APIRouter(dependencies=[Depends(require_veterinario_user)])
+
+
+@router.get("/perfil/", response_model=schemas.PerfilVeterinarioResponse, tags=["Panel Veterinario"])
+def leer_perfil_veterinario(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	perfil = crud.get_perfil_veterinario(db=db, id_usuario=current_user.id_usuario)
+	if perfil is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontró el perfil del veterinario autenticado")
+	return perfil
+
+
+@router.get("/solicitudes-panel/", response_model=List[schemas.SolicitudPanelVeterinarioResponse], tags=["Panel Veterinario"])
+def leer_solicitudes_panel(
+	id_estado: int | None = None,
+	current_user=Depends(require_veterinario_user),
+	db: Session = Depends(get_db),
+):
+	return crud.get_solicitudes_panel_vet(db=db, id_veterinario=current_user.id_usuario, id_estado=id_estado)
+
+
+@router.get("/bitacora/", response_model=List[schemas.BitacoraVeterinarioResponse], tags=["Panel Veterinario"])
+def leer_bitacora_veterinario(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	return crud.get_bitacora_vet(db=db, id_usuario=current_user.id_usuario)
+
+
+@router.get("/documentos-subidos/", response_model=List[schemas.DocumentoVeterinarioResponse], tags=["Panel Veterinario"])
+def leer_documentos_subidos(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	return crud.get_documentos_vet(db=db, id_usuario=current_user.id_usuario)
 
 
 @router.post("/veterinarios/", response_model=schemas.DatosVeterinariosResponse, tags=["Flujo Certificación"])
