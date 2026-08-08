@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -9,7 +9,80 @@ from app.database import get_db
 
 from . import crud, schemas
 
-router = APIRouter(dependencies=[Depends(auth.get_current_user)])
+
+
+def require_admin_user(current_user=Depends(auth.get_current_user)):
+	if current_user.id_rol != 5:
+		raise HTTPException(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail="No tienes permisos para acceder al panel de administrador",
+		)
+	return current_user
+
+
+router = APIRouter(dependencies=[Depends(require_admin_user)])
+
+
+@router.get("/usuarios-activos/", response_model=List[schemas.ResumenUsuariosActivosResponse], tags=["Panel Administrador"])
+def resumen_usuarios_activos(db: Session = Depends(get_db)):
+	return crud.get_resumen_usuarios_activos_por_tipo(db=db)
+
+
+@router.get("/solicitudes-registro/", response_model=List[schemas.SolicitudRegistroAdminResponse], tags=["Panel Administrador"])
+def leer_solicitudes_registro(
+	id_estado: int | None = None,
+	id_rol: int | None = None,
+	db: Session = Depends(get_db),
+):
+	return crud.get_solicitudes_registro_admin(db=db, id_estado=id_estado, id_rol=id_rol)
+
+
+@router.get("/bitacora-sistema/", response_model=List[schemas.LogActividadAdminResponse], tags=["Panel Administrador"])
+def leer_bitacora_sistema(
+	id_usuario: int | None = None,
+	id_rol: int | None = None,
+	tabla_afectada: str | None = None,
+	fecha_cambio_desde: datetime | None = None,
+	fecha_cambio_hasta: datetime | None = None,
+	db: Session = Depends(get_db),
+):
+	return crud.get_bitacora_admin(
+		db=db,
+		id_usuario=id_usuario,
+		id_rol=id_rol,
+		tabla_afectada=tabla_afectada,
+		fecha_cambio_desde=fecha_cambio_desde,
+		fecha_cambio_hasta=fecha_cambio_hasta,
+	)
+
+
+@router.get("/documentos-revision/", response_model=List[schemas.DocumentoRevisionAdminResponse], tags=["Panel Administrador"])
+def leer_documentos_revision(
+	id_usuario_subio: int | None = None,
+	id_validador: int | None = None,
+	id_estado: int | None = None,
+	id_tipo_doc: int | None = None,
+	fecha_subida_desde: datetime | None = None,
+	fecha_subida_hasta: datetime | None = None,
+	db: Session = Depends(get_db),
+):
+	return crud.get_documentos_revision_admin(
+		db=db,
+		id_usuario_subio=id_usuario_subio,
+		id_validador=id_validador,
+		id_estado=id_estado,
+		id_tipo_doc=id_tipo_doc,
+		fecha_subida_desde=fecha_subida_desde,
+		fecha_subida_hasta=fecha_subida_hasta,
+	)
+
+
+@router.get("/perfil/", response_model=schemas.PerfilAdministradorResponse, tags=["Panel Administrador"])
+def leer_perfil_administrador(current_user=Depends(require_admin_user), db: Session = Depends(get_db)):
+	perfil = crud.get_perfil_administrador(db=db, usuario_actual=current_user)
+	if perfil is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontró el perfil del usuario autenticado")
+	return perfil
 
 
 @router.post("/tipos-documentos/", response_model=schemas.TipoDocResponse, tags=["Gestión Documental"])

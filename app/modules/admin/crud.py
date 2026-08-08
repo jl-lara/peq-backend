@@ -2,9 +2,11 @@
 
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import crud as legacy_crud
+from app import models
 
 
 def create_tipo_doc(db: Session, tipo_doc):
@@ -306,3 +308,203 @@ def update_enfermedad_animal(db: Session, id_enfermedad: int, id_animal: int, en
 
 def delete_enfermedad_animal(db: Session, id_enfermedad: int, id_animal: int):
 	return legacy_crud.delete_enfermedad_animal(db=db, id_enfermedad=id_enfermedad, id_animal=id_animal)
+
+
+def get_resumen_usuarios_activos_por_tipo(db: Session):
+	rows = (
+		db.query(
+			models.Rol.nombre.label("tipo_usuario"),
+			func.count(models.Usuario.id_usuario).label("total_usuarios_activos"),
+		)
+		.join(models.Usuario, models.Usuario.id_rol == models.Rol.id_rol)
+		.join(models.Estado, models.Usuario.id_estado == models.Estado.id_estado)
+		.filter(func.upper(models.Estado.nombre) == "ACTIVO")
+		.group_by(models.Rol.nombre)
+		.order_by(models.Rol.nombre)
+		.all()
+	)
+	return [
+		{
+			"tipo_usuario": row.tipo_usuario,
+			"total_usuarios_activos": row.total_usuarios_activos,
+		}
+		for row in rows
+	]
+
+
+def get_solicitudes_registro_admin(
+	db: Session,
+	id_estado: int | None = None,
+	id_rol: int | None = None,
+):
+	query = (
+		db.query(
+			models.Usuario.id_usuario,
+			models.Usuario.nombre,
+			models.Usuario.apellido_paterno,
+			models.Usuario.telefono,
+			models.Usuario.email,
+			models.Usuario.fecha_registro,
+			models.Rol.nombre.label("tipo_rol"),
+			models.Estado.nombre.label("estado_usuario"),
+		)
+		.join(models.Rol, models.Usuario.id_rol == models.Rol.id_rol)
+		.join(models.Estado, models.Usuario.id_estado == models.Estado.id_estado)
+	)
+	if id_estado is not None:
+		query = query.filter(models.Usuario.id_estado == id_estado)
+	if id_rol is not None:
+		query = query.filter(models.Usuario.id_rol == id_rol)
+
+	rows = query.order_by(models.Usuario.fecha_registro.desc()).all()
+	return [
+		{
+			"id_usuario": row.id_usuario,
+			"id_usuario_display": f"USR-{row.id_usuario:03d}",
+			"nombre_completo": f"{row.nombre} {row.apellido_paterno}",
+			"tipo_rol": row.tipo_rol,
+			"email": row.email,
+			"telefono": row.telefono,
+			"fecha_solicitud": row.fecha_registro,
+			"estado_usuario": row.estado_usuario,
+		}
+		for row in rows
+	]
+
+
+def get_bitacora_admin(
+	db: Session,
+	id_usuario: int | None = None,
+	id_rol: int | None = None,
+	tabla_afectada: str | None = None,
+	fecha_cambio_desde: datetime | None = None,
+	fecha_cambio_hasta: datetime | None = None,
+):
+	query = (
+		db.query(
+			models.Bitacora.fecha_cambio,
+			models.Usuario.nombre,
+			models.Usuario.apellido_paterno,
+			models.Usuario.ciudad,
+			models.Rol.nombre.label("tipo_usuario"),
+			models.Accion.nombre.label("accion"),
+			models.Bitacora.tabla_afectada,
+			models.Bitacora.valor_anterior,
+			models.Bitacora.valor_nuevo,
+		)
+		.join(models.Usuario, models.Bitacora.id_usuario == models.Usuario.id_usuario)
+		.join(models.Rol, models.Usuario.id_rol == models.Rol.id_rol)
+		.join(models.Accion, models.Bitacora.id_accion == models.Accion.id_accion)
+	)
+	if id_usuario is not None:
+		query = query.filter(models.Bitacora.id_usuario == id_usuario)
+	if id_rol is not None:
+		query = query.filter(models.Usuario.id_rol == id_rol)
+	if tabla_afectada:
+		query = query.filter(models.Bitacora.tabla_afectada == tabla_afectada)
+	if fecha_cambio_desde is not None:
+		query = query.filter(models.Bitacora.fecha_cambio >= fecha_cambio_desde)
+	if fecha_cambio_hasta is not None:
+		query = query.filter(models.Bitacora.fecha_cambio <= fecha_cambio_hasta)
+
+	rows = query.order_by(models.Bitacora.fecha_cambio.desc()).all()
+	return [
+		{
+			"fecha_hora": row.fecha_cambio,
+			"usuario_responsable": f"{row.nombre} {row.apellido_paterno}",
+			"tipo_usuario": row.tipo_usuario,
+			"accion": row.accion,
+			"entidad": row.tabla_afectada,
+			"detalles": f"Registro afectado: {row.valor_nuevo or row.valor_anterior or ''}",
+			"ciudad": row.ciudad,
+		}
+		for row in rows
+	]
+
+
+def get_documentos_revision_admin(
+	db: Session,
+	id_usuario_subio: int | None = None,
+	id_validador: int | None = None,
+	id_estado: int | None = None,
+	id_tipo_doc: int | None = None,
+	fecha_subida_desde: datetime | None = None,
+	fecha_subida_hasta: datetime | None = None,
+):
+	query = (
+		db.query(
+			models.Documento.id_doc_animal,
+			models.Documento.id_usuario_subio,
+			models.TipoDoc.nombre.label("tipo_documento"),
+			models.Documento.url_archivo,
+			models.Estado.nombre.label("estado_revision"),
+			models.Documento.notas,
+			models.Documento.fecha_revision,
+		)
+		.join(models.TipoDoc, models.Documento.id_tipo_doc == models.TipoDoc.id_tipo_doc)
+		.join(models.Estado, models.Documento.id_estado == models.Estado.id_estado)
+	)
+	if id_usuario_subio is not None:
+		query = query.filter(models.Documento.id_usuario_subio == id_usuario_subio)
+	if id_validador is not None:
+		query = query.filter(models.Documento.id_validador == id_validador)
+	if id_estado is not None:
+		query = query.filter(models.Documento.id_estado == id_estado)
+	if id_tipo_doc is not None:
+		query = query.filter(models.Documento.id_tipo_doc == id_tipo_doc)
+	if fecha_subida_desde is not None:
+		query = query.filter(models.Documento.fecha_subida >= fecha_subida_desde)
+	if fecha_subida_hasta is not None:
+		query = query.filter(models.Documento.fecha_subida <= fecha_subida_hasta)
+
+	rows = query.order_by(models.Documento.fecha_subida.desc()).all()
+	return [
+		{
+			"id_doc_animal": row.id_doc_animal,
+			"id_usuario_subio": row.id_usuario_subio,
+			"tipo_documento": row.tipo_documento,
+			"enlace_documento": row.url_archivo,
+			"estado_revision": row.estado_revision,
+			"notas_administrador": row.notas,
+			"fecha_revision": row.fecha_revision,
+		}
+		for row in rows
+	]
+
+
+def get_perfil_administrador(db: Session, usuario_actual: models.Usuario):
+	perfil = (
+		db.query(
+			models.Usuario.id_usuario,
+			models.Usuario.nombre,
+			models.Usuario.apellido_paterno,
+			models.Usuario.apellido_materno,
+			models.Usuario.email,
+			models.Usuario.telefono,
+			models.Usuario.ciudad,
+			models.Usuario.fecha_registro,
+			models.Rol.nombre.label("rol_sistema"),
+			models.Estado.nombre.label("estatus_cuenta"),
+		)
+		.join(models.Rol, models.Usuario.id_rol == models.Rol.id_rol)
+		.join(models.Estado, models.Usuario.id_estado == models.Estado.id_estado)
+		.filter(models.Usuario.id_usuario == usuario_actual.id_usuario)
+		.first()
+	)
+	if not perfil:
+		return None
+
+	nombre_completo = f"{perfil.nombre} {perfil.apellido_paterno}"
+	if perfil.apellido_materno:
+		nombre_completo = f"{nombre_completo} {perfil.apellido_materno}"
+
+	return {
+		"id_usuario": perfil.id_usuario,
+		"nombre_completo": nombre_completo,
+		"email": perfil.email,
+		"telefono": perfil.telefono,
+		"ciudad": perfil.ciudad,
+		"rol_sistema": perfil.rol_sistema,
+		"miembro_desde": perfil.fecha_registro,
+		"estatus_cuenta": perfil.estatus_cuenta,
+	}
