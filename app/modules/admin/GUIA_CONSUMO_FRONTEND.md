@@ -36,10 +36,10 @@ const data = await response.json();
 
 Este bloque cubre el mantenimiento de usuarios desde el panel de administración.
 
-- `POST /usuarios/`
-- `GET /usuarios/`
-- `PUT /usuarios/{id_usuario}`
-- `DELETE /usuarios/{id_usuario}`
+- `POST /admin/usuarios/`
+- `GET /admin/usuarios/`
+- `PUT /admin/usuarios/{id_usuario}`
+- `DELETE /admin/usuarios/{id_usuario}`
 
 Filtros disponibles en `GET /usuarios/`:
 
@@ -188,10 +188,10 @@ Estos catálogos ya están expuestos en el panel admin para que el frontend pued
 
 ### Estados
 
-- `POST /estados/`
-- `GET /estados/`
-- `PUT /estados/{id_estado}`
-- `DELETE /estados/{id_estado}`
+- `POST /admin/estados/`
+- `GET /admin/estados/`
+- `PUT /admin/estados/{id_estado}`
+- `DELETE /admin/estados/{id_estado}`
 
 Filtro disponible en `GET /estados/`:
 
@@ -199,10 +199,10 @@ Filtro disponible en `GET /estados/`:
 
 ### Roles
 
-- `POST /roles/`
-- `GET /roles/`
-- `PUT /roles/{id_rol}`
-- `DELETE /roles/{id_rol}`
+- `POST /admin/roles/`
+- `GET /admin/roles/`
+- `PUT /admin/roles/{id_rol}`
+- `DELETE /admin/roles/{id_rol}`
 
 Filtro disponible en `GET /roles/`:
 
@@ -210,10 +210,10 @@ Filtro disponible en `GET /roles/`:
 
 ### Acciones
 
-- `POST /acciones/`
-- `GET /acciones/`
-- `PUT /acciones/{id_accion}`
-- `DELETE /acciones/{id_accion}`
+- `POST /admin/acciones/`
+- `GET /admin/acciones/`
+- `PUT /admin/acciones/{id_accion}`
+- `DELETE /admin/acciones/{id_accion}`
 
 Filtro disponible en `GET /acciones/`:
 
