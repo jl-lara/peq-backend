@@ -5,14 +5,16 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app import auth
+from app import models
 from app.database import get_db
 
 from . import crud, schemas
 
 
 
-def require_veterinario_user(current_user=Depends(auth.get_current_user)):
-	if current_user.id_rol != 2:
+def require_veterinario_user(current_user=Depends(auth.get_current_user), db: Session = Depends(get_db)):
+	rol = db.query(models.Rol).filter(models.Rol.id_rol == current_user.id_rol).first()
+	if rol is None or rol.nombre.strip().upper() != "VETERINARIO":
 		raise HTTPException(
 			status_code=status.HTTP_403_FORBIDDEN,
 			detail="No tienes permisos para acceder al panel de veterinario",

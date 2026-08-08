@@ -5,14 +5,24 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app import auth
+from app import models
 from app.database import get_db
 
 from . import crud, schemas
 
 
 
-def require_admin_user(current_user=Depends(auth.get_current_user)):
-	if current_user.id_rol != 5:
+def require_admin_user(current_user=Depends(auth.get_current_user), db: Session = Depends(get_db)):
+	if current_user.id_rol is None:
+		raise HTTPException(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail="No tienes permisos para acceder al panel de administrador",
+		)
+
+	# Validamos por nombre de rol para no depender del ID sembrado en una BD concreta.
+	rol = db.query(models.Rol).filter(models.Rol.id_rol == current_user.id_rol).first()
+
+	if rol is None or rol.nombre.strip().upper() != "ADMINISTRADOR":
 		raise HTTPException(
 			status_code=status.HTTP_403_FORBIDDEN,
 			detail="No tienes permisos para acceder al panel de administrador",
@@ -23,9 +33,107 @@ def require_admin_user(current_user=Depends(auth.get_current_user)):
 router = APIRouter(dependencies=[Depends(require_admin_user)])
 
 
+@router.post("/usuarios/", response_model=schemas.UsuarioResponse, tags=["Gestión de Usuarios"])
+def crear_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+	return crud.create_usuario(db=db, usuario=usuario)
+
+
+@router.get("/usuarios/", response_model=List[schemas.UsuarioResponse], tags=["Gestión de Usuarios"])
+def leer_usuarios(
+	skip: int = 0,
+	limit: int = 100,
+	id_rol: int | None = None,
+	id_estado: int | None = None,
+	ciudad: str | None = None,
+	usuario: str | None = None,
+	email: str | None = None,
+	db: Session = Depends(get_db),
+):
+	return crud.get_usuarios(
+		db=db,
+		skip=skip,
+		limit=limit,
+		id_rol=id_rol,
+		id_estado=id_estado,
+		ciudad=ciudad,
+		usuario=usuario,
+		email=email,
+	)
+
+
+@router.put("/usuarios/{id_usuario}", response_model=schemas.UsuarioResponse, tags=["Gestión de Usuarios"])
+def actualizar_usuario(id_usuario: int, usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+	return crud.update_usuario(db=db, id_usuario=id_usuario, usuario=usuario)
+
+
+@router.delete("/usuarios/{id_usuario}", tags=["Gestión de Usuarios"])
+def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
+	return crud.delete_usuario(db=db, id_usuario=id_usuario)
+
+
 @router.get("/usuarios-activos/", response_model=List[schemas.ResumenUsuariosActivosResponse], tags=["Panel Administrador"])
 def resumen_usuarios_activos(db: Session = Depends(get_db)):
 	return crud.get_resumen_usuarios_activos_por_tipo(db=db)
+
+
+@router.post("/estados/", response_model=schemas.EstadoResponse, tags=["Catálogos Base"])
+def crear_estado(estado: schemas.EstadoCreate, db: Session = Depends(get_db)):
+	return crud.create_estado(db=db, estado=estado)
+
+
+@router.get("/estados/", response_model=List[schemas.EstadoResponse], tags=["Catálogos Base"])
+def leer_estados(skip: int = 0, limit: int = 100, nombre: str | None = None, db: Session = Depends(get_db)):
+	return crud.get_estados(db=db, skip=skip, limit=limit, nombre=nombre)
+
+
+@router.put("/estados/{id_estado}", response_model=schemas.EstadoResponse, tags=["Catálogos Base"])
+def actualizar_estado(id_estado: int, estado: schemas.EstadoCreate, db: Session = Depends(get_db)):
+	return crud.update_estado(db=db, id_estado=id_estado, estado=estado)
+
+
+@router.delete("/estados/{id_estado}", tags=["Catálogos Base"])
+def eliminar_estado(id_estado: int, db: Session = Depends(get_db)):
+	return crud.delete_estado(db=db, id_estado=id_estado)
+
+
+@router.post("/roles/", response_model=schemas.RolResponse, tags=["Catálogos Base"])
+def crear_rol(rol: schemas.RolCreate, db: Session = Depends(get_db)):
+	return crud.create_rol(db=db, rol=rol)
+
+
+@router.get("/roles/", response_model=List[schemas.RolResponse], tags=["Catálogos Base"])
+def leer_roles(skip: int = 0, limit: int = 100, nombre: str | None = None, db: Session = Depends(get_db)):
+	return crud.get_roles(db=db, skip=skip, limit=limit, nombre=nombre)
+
+
+@router.put("/roles/{id_rol}", response_model=schemas.RolResponse, tags=["Catálogos Base"])
+def actualizar_rol(id_rol: int, rol: schemas.RolCreate, db: Session = Depends(get_db)):
+	return crud.update_rol(db=db, id_rol=id_rol, rol=rol)
+
+
+@router.delete("/roles/{id_rol}", tags=["Catálogos Base"])
+def eliminar_rol(id_rol: int, db: Session = Depends(get_db)):
+	return crud.delete_rol(db=db, id_rol=id_rol)
+
+
+@router.post("/acciones/", response_model=schemas.AccionResponse, tags=["Catálogos Base"])
+def crear_accion(accion: schemas.AccionCreate, db: Session = Depends(get_db)):
+	return crud.create_accion(db=db, accion=accion)
+
+
+@router.get("/acciones/", response_model=List[schemas.AccionResponse], tags=["Catálogos Base"])
+def leer_acciones(skip: int = 0, limit: int = 100, nombre: str | None = None, db: Session = Depends(get_db)):
+	return crud.get_acciones(db=db, skip=skip, limit=limit, nombre=nombre)
+
+
+@router.put("/acciones/{id_accion}", response_model=schemas.AccionResponse, tags=["Catálogos Base"])
+def actualizar_accion(id_accion: int, accion: schemas.AccionCreate, db: Session = Depends(get_db)):
+	return crud.update_accion(db=db, id_accion=id_accion, accion=accion)
+
+
+@router.delete("/acciones/{id_accion}", tags=["Catálogos Base"])
+def eliminar_accion(id_accion: int, db: Session = Depends(get_db)):
+	return crud.delete_accion(db=db, id_accion=id_accion)
 
 
 @router.get("/solicitudes-registro/", response_model=List[schemas.SolicitudRegistroAdminResponse], tags=["Panel Administrador"])

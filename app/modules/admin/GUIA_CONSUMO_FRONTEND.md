@@ -32,6 +32,25 @@ const data = await response.json();
 
 ## Endpoints disponibles
 
+### 0. Gestión de usuarios
+
+Este bloque cubre el mantenimiento de usuarios desde el panel de administración.
+
+- `POST /usuarios/`
+- `GET /usuarios/`
+- `PUT /usuarios/{id_usuario}`
+- `DELETE /usuarios/{id_usuario}`
+
+Filtros disponibles en `GET /usuarios/`:
+
+- `skip`
+- `limit`
+- `id_rol`
+- `id_estado`
+- `ciudad`
+- `usuario`
+- `email`
+
 ### 1. Resumen de usuarios activos por tipo
 
 Obtiene el conteo de usuarios activos agrupados por rol.
@@ -163,6 +182,43 @@ Ejemplo de respuesta:
 }
 ```
 
+## Catálogos base
+
+Estos catálogos ya están expuestos en el panel admin para que el frontend pueda administrarlos sin salir del módulo.
+
+### Estados
+
+- `POST /estados/`
+- `GET /estados/`
+- `PUT /estados/{id_estado}`
+- `DELETE /estados/{id_estado}`
+
+Filtro disponible en `GET /estados/`:
+
+- `nombre`
+
+### Roles
+
+- `POST /roles/`
+- `GET /roles/`
+- `PUT /roles/{id_rol}`
+- `DELETE /roles/{id_rol}`
+
+Filtro disponible en `GET /roles/`:
+
+- `nombre`
+
+### Acciones
+
+- `POST /acciones/`
+- `GET /acciones/`
+- `PUT /acciones/{id_accion}`
+- `DELETE /acciones/{id_accion}`
+
+Filtro disponible en `GET /acciones/`:
+
+- `nombre`
+
 ## Endpoints de gestión documental
 
 Estos endpoints ya existen en el módulo admin y pueden ser útiles para pantallas de catálogo o configuración.
@@ -206,6 +262,15 @@ Estos endpoints ya existen en el módulo admin y pueden ser útiles para pantall
 - `GET /precios-animales/`
 - `PUT /precios-animales/{id_precio}/{id_animal}`
 - `DELETE /precios-animales/{id_precio}/{id_animal}`
+
+## Endpoints de administración de relaciones
+
+### Requisitos de documentos por rol
+
+- `POST /requisitos-documentos/`
+- `GET /requisitos-documentos/`
+- `PUT /requisitos-documentos/{id_rol}/{id_tipo_doc}`
+- `DELETE /requisitos-documentos/{id_rol}/{id_tipo_doc}`
 
 ## Endpoints de auditoría y sanidad
 
