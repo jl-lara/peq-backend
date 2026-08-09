@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -353,22 +353,22 @@ def get_ficha_tecnica_animal(db: Session, arete_id: str):
 def cambiar_contrasena_usuario(
 	db: Session, id_usuario: int, contrasena_actual: str, contrasena_nueva: str
 ):
-	# 1. Consultar usuario por ID
 	usuario = (
 		db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
 	)
 	if not usuario:
 		raise HTTPException(status_code=404, detail="Usuario no encontrado.")
 
-	# 2. Verificar la clave actual con la columna 'password'
+	# 1. Comparar la contraseña ingresada con la almacenada en la columna 'password'
 	if not auth.verify_password(contrasena_actual, usuario.password):
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
-			detail="La contraseña actual ingresada es incorrecta.",
+			detail="La contraseña actual es incorrecta.",
 		)
 
-	# 3. Guardar la nueva contraseña encriptada
+	# 2. Generar el nuevo Hash y guardar en la base de datos
 	usuario.password = auth.get_password_hash(contrasena_nueva)
 	db.commit()
+	db.refresh(usuario)
 
 	return {"mensaje": "Contraseña actualizada correctamente."}
