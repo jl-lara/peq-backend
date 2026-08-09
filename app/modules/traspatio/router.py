@@ -135,3 +135,14 @@ def leer_perfil_productor(
 	current_user=Depends(auth.get_current_user),
 ):
 	return crud.get_perfil_productor(db=db, id_usuario=current_user.id_usuario)
+
+
+@router.get("/traspatio/documentos-productor/", response_model=List[schemas.DocumentoProductorResponse], tags=["Traspatio"])
+def leer_documentos_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_documentos_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+	)

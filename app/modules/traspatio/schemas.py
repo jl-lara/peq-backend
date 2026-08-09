@@ -44,6 +44,13 @@ class ProductorPerfilResponse(BaseModel):
 	class Config:
 		from_attributes = True
 
+class DocumentoProductorResponse(BaseModel):
+	tipo_documento: str
+	enlace_archivo: str
+
+	class Config:
+		from_attributes = True
+
 __all__ = [
 	"AnimalResponse",
 	"AnimalRegistradoProductorResponse",
@@ -52,4 +59,5 @@ __all__ = [
 	"SolicitudCertificacionResponse",
 	"ActividadProductorResponse",
 	"ProductorPerfilResponse",
+	"DocumentoProductorResponse",
 ]

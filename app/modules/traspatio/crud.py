@@ -233,3 +233,23 @@ def get_perfil_productor(db: Session, id_usuario: int):
 		"capacidad_animales": row.capacidad_animales,
 		"superficie_hectareas": float(row.superficie_hectareas or 0),
 	}
+
+def get_documentos_productor(db: Session, id_usuario: int):
+	rows = (
+		db.query(
+			models.TipoDoc.nombre.label("tipo_documento"),
+			models.Documento.url_archivo.label("enlace_archivo"),
+		)
+		.join(models.TipoDoc, models.Documento.id_tipo_doc == models.TipoDoc.id_tipo_doc)
+		.filter(models.Documento.id_usuario_subio == id_usuario)
+		.order_by(models.TipoDoc.nombre.asc())
+		.all()
+	)
+
+	return [
+		{
+			"tipo_documento": row.tipo_documento,
+			"enlace_archivo": row.enlace_archivo,
+		}
+		for row in rows
+	]
