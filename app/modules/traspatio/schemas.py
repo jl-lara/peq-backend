@@ -28,7 +28,21 @@ class ActividadProductorResponse(BaseModel):
 	entidad: str
 	detalles: str | None = None
 
+class ProductorPerfilResponse(BaseModel):
+	nombre_completo: str
+	email: str
+	telefono: str | None = None
+	tipo_productor: str
+	fecha_registro: datetime
+	nombre_rancho: str
+	municipio: str
+	estado_ubicacion: str
+	direccion: str
+	capacidad_animales: int
+	superficie_hectareas: float
 
+	class Config:
+		from_attributes = True
 
 __all__ = [
 	"AnimalResponse",
@@ -37,4 +51,5 @@ __all__ = [
 	"ProductorResponse",
 	"SolicitudCertificacionResponse",
 	"ActividadProductorResponse",
+	"ProductorPerfilResponse",
 ]

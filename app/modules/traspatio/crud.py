@@ -191,3 +191,45 @@ def get_mis_actividades(
 		}
 		for row in rows
 	]
+
+def get_perfil_productor(db: Session, id_usuario: int):
+	row = (
+		db.query(
+			(models.Usuario.nombre + " " + models.Usuario.apellido_paterno).label("nombre_completo"),
+			models.Usuario.email,
+			models.Usuario.telefono,
+			models.Rol.nombre.label("tipo_productor"),
+			models.Usuario.fecha_registro,
+			models.Productor.nombre.label("nombre_rancho"),
+			models.Usuario.ciudad.label("municipio"),
+			models.Estado.nombre.label("estado_ubicacion"),
+			models.Productor.direccion,
+			models.Productor.capacidad_animales,
+			models.Productor.superficie_hectareas,
+		)
+		.join(models.Productor, models.Usuario.id_usuario == models.Productor.id_usuario)
+		.join(models.Rol, models.Usuario.id_rol == models.Rol.id_rol)
+		.join(models.Estado, models.Usuario.id_estado == models.Estado.id_estado)
+		.filter(models.Usuario.id_usuario == id_usuario)
+		.first()
+	)
+
+	if not row:
+		raise HTTPException(
+			status_code=404,
+			detail="Perfil de productor no encontrado para este usuario.",
+		)
+
+	return {
+		"nombre_completo": row.nombre_completo,
+		"email": row.email,
+		"telefono": row.telefono,
+		"tipo_productor": row.tipo_productor,
+		"fecha_registro": row.fecha_registro,
+		"nombre_rancho": row.nombre_rancho,
+		"municipio": row.municipio,
+		"estado_ubicacion": row.estado_ubicacion,
+		"direccion": row.direccion,
+		"capacidad_animales": row.capacidad_animales,
+		"superficie_hectareas": float(row.superficie_hectareas or 0),
+	}

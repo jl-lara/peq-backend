@@ -128,3 +128,10 @@ def leer_mis_actividades(
 		skip=skip,
 		limit=limit,
 	)
+
+@router.get("/traspatio/perfil/", response_model=schemas.ProductorPerfilResponse, tags=["Traspatio"])
+def leer_perfil_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_perfil_productor(db=db, id_usuario=current_user.id_usuario)
