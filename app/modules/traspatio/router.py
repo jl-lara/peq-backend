@@ -174,9 +174,14 @@ def actualizar_contrasena_productor(
 	db: Session = Depends(get_db),
 	current_user=Depends(auth.get_current_user),
 ):
+	# Pasamos el id_usuario o el email del usuario autenticado
+	usuario_identificador = getattr(
+		current_user, "id_usuario", getattr(current_user, "email", None)
+	)
+
 	return crud.cambiar_contrasena_usuario(
 		db=db,
-		id_usuario=current_user.id_usuario,
+		id_usuario_o_email=usuario_identificador,
 		contrasena_actual=payload.contrasena_actual,
 		contrasena_nueva=payload.contrasena_nueva,
 	)
