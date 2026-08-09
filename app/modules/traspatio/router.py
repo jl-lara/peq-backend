@@ -174,6 +174,7 @@ def actualizar_contrasena_productor(
 	db: Session = Depends(get_db),
 	current_user=Depends(auth.get_current_user),
 ):
+	# current_user.id_usuario viene directamente de auth.get_current_user
 	return crud.cambiar_contrasena_usuario(
 		db=db,
 		id_usuario=current_user.id_usuario,
