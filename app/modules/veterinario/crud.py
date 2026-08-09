@@ -260,6 +260,39 @@ def get_solicitudes_panel_vet(
 	]
 
 
+def get_solicitudes_panel_vet_db(
+	db: Session,
+	id_veterinario: int,
+	id_estado: int | None = None,
+):
+	resultado = db.execute(
+		text("SELECT fn_obtener_solicitudes_vet(:id_veterinario, :id_estado) AS solicitudes"),
+		{"id_veterinario": id_veterinario, "id_estado": id_estado},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"codigo_solicitud": row.get("codigo_solicitud"),
+			"arete_animal": row.get("arete_animal"),
+			"tipo_ganado": row.get("tipo_ganado"),
+			"nombre_productor": row.get("nombre_productor"),
+			"rancho": row.get("rancho"),
+			"raza": row.get("raza"),
+			"edad_anios": row.get("edad_anios"),
+			"peso_est_kg": row.get("peso_est_kg"),
+			"fecha_solicitud": row.get("fecha_solicitud"),
+			"estado_solicitud": row.get("estado_solicitud"),
+		}
+		for row in (resultado or [])
+	]
+
+
 def get_bitacora_vet(db: Session, id_usuario: int):
 	rows = (
 		db.query(
@@ -285,6 +318,29 @@ def get_bitacora_vet(db: Session, id_usuario: int):
 	]
 
 
+def get_bitacora_vet_db(db: Session, id_usuario: int):
+	resultado = db.execute(
+		text("SELECT fn_obtener_actividad_vet(:id_usuario) AS bitacora"),
+		{"id_usuario": id_usuario},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"fecha_hora": row.get("fecha_hora"),
+			"tipo_accion": row.get("tipo_accion"),
+			"entidad_afectada": row.get("entidad_afectada"),
+			"detalles": row.get("detalles"),
+		}
+		for row in (resultado or [])
+	]
+
+
 def get_documentos_vet(db: Session, id_usuario: int):
 	rows = (
 		db.query(
@@ -307,4 +363,26 @@ def get_documentos_vet(db: Session, id_usuario: int):
 			"fecha_revision": row.fecha_revision,
 		}
 		for row in rows
+	]
+
+
+def get_documentos_vet_db(db: Session, id_usuario: int):
+	resultado = db.execute(
+		text("SELECT fn_obtener_documentos_vet(:id_usuario) AS documentos"),
+		{"id_usuario": id_usuario},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"nombre_documento": row.get("nombre_documento"),
+			"enlace_documento": row.get("url_archivo"),
+			"estado_documento": row.get("estado_documento"),
+		}
+		for row in (resultado or [])
 	]

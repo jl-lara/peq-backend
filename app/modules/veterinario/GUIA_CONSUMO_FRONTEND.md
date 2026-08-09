@@ -151,6 +151,34 @@ Campos principales de respuesta:
 - `fecha_solicitud`
 - `estado_solicitud`
 
+### 2.1 Solicitudes asignadas al veterinario desde la función de BD
+
+Devuelve las solicitudes usando la función `fn_obtener_solicitudes_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/solicitudes-panel-db/`
+- Query params opcionales:
+  - `id_estado`
+
+Ejemplo:
+
+```http
+GET /solicitudes-panel-db/?id_estado=3
+```
+
+Campos principales de respuesta:
+
+- `codigo_solicitud`
+- `arete_animal`
+- `tipo_ganado`
+- `nombre_productor`
+- `rancho`
+- `raza`
+- `edad_anios`
+- `peso_est_kg`
+- `fecha_solicitud`
+- `estado_solicitud`
+
 ### 3. Bitácora personal del veterinario
 
 Devuelve la actividad registrada del veterinario en la bitácora.
@@ -162,6 +190,26 @@ Ejemplo:
 
 ```http
 GET /bitacora/
+```
+
+Campos principales de respuesta:
+
+- `fecha_hora`
+- `tipo_accion`
+- `entidad_afectada`
+- `detalles`
+
+### 3.1 Bitácora personal del veterinario desde la función de BD
+
+Devuelve la bitácora usando la función `fn_obtener_actividad_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/bitacora-db/`
+
+Ejemplo:
+
+```http
+GET /bitacora-db/
 ```
 
 Campos principales de respuesta:
@@ -190,6 +238,25 @@ Campos principales de respuesta:
 - `enlace_documento`
 - `estado_documento`
 - `fecha_revision`
+
+### 4.1 Documentos subidos por el veterinario desde la función de BD
+
+Devuelve los documentos usando la función `fn_obtener_documentos_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/documentos-subidos-db/`
+
+Ejemplo:
+
+```http
+GET /documentos-subidos-db/
+```
+
+Campos principales de respuesta:
+
+- `nombre_documento`
+- `enlace_documento`
+- `estado_documento`
 
 ## Endpoints de gestión existentes
 

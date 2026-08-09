@@ -69,7 +69,27 @@ class SolicitudPanelVeterinarioResponse(BaseModel):
 	estado_solicitud: str
 
 
+class SolicitudPanelVeterinarioDBResponse(BaseModel):
+	codigo_solicitud: str
+	arete_animal: str
+	tipo_ganado: str
+	nombre_productor: str
+	rancho: str
+	raza: str
+	edad_anios: int
+	peso_est_kg: float
+	fecha_solicitud: datetime
+	estado_solicitud: str
+
+
 class BitacoraVeterinarioResponse(BaseModel):
+	fecha_hora: datetime
+	tipo_accion: str
+	entidad_afectada: str
+	detalles: str
+
+
+class BitacoraVeterinarioDBResponse(BaseModel):
 	fecha_hora: datetime
 	tipo_accion: str
 	entidad_afectada: str
@@ -82,6 +102,12 @@ class DocumentoVeterinarioResponse(BaseModel):
 	estado_documento: str
 	fecha_revision: Optional[datetime] = None
 
+
+class DocumentoVeterinarioDBResponse(BaseModel):
+	nombre_documento: str
+	enlace_documento: str
+	estado_documento: str
+
 __all__ = [
 	"CertificacionCreate",
 	"CertificacionResponse",
@@ -90,11 +116,14 @@ __all__ = [
 	"PerfilVeterinarioResponse",
 	"SolicitudPanelVeterinarioResponse",
 	"BitacoraVeterinarioResponse",
+	"BitacoraVeterinarioDBResponse",
 	"PerfilVeterinarioDatosPersonalesResponse",
 	"PerfilVeterinarioDatosProfesionalesResponse",
 	"PerfilVeterinarioDetalladoResponse",
 	"PerfilVeterinarioResumenResponse",
 	"DocumentoVeterinarioResponse",
+	"DocumentoVeterinarioDBResponse",
+	"SolicitudPanelVeterinarioDBResponse",
 	"SolicitudCertificacionCreate",
 	"SolicitudCertificacionResponse",
 ]
