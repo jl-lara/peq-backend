@@ -2,6 +2,8 @@
 
 from datetime import datetime
 
+import bcrypt
+
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -348,25 +350,32 @@ def get_ficha_tecnica_animal(db: Session, arete_id: str):
 
 	return ficha_dict
 
-# Configuración del motor Bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
 	try:
-		return pwd_context.verify(plain_password, hashed_password)
+		# Si está guardada con Bcrypt ($2a$, $2b$, etc.)
+		if hashed_password and hashed_password.startswith(
+			("$2a$", "$2b$", "$2y$", "$2x$")
+		):
+			return bcrypt.checkpw(
+				plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+			)
+		# Respaldo por texto plano
+		return plain_password == hashed_password
 	except Exception:
 		return False
 
 
 def get_password_hash(password: str) -> str:
-	return pwd_context.hash(password)
+	# Genera un hash Bcrypt de exactamente 60 caracteres compatible con fn_cambiar_password
+	salt = bcrypt.gensalt(rounds=12)
+	hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
+	return hashed.decode("utf-8")
 
 
 def cambiar_contrasena_usuario(
 	db: Session, id_usuario: int, contrasena_actual: str, contrasena_nueva: str
 ):
-	# 1. Obtener al usuario autenticado
+	# 1. Buscar al usuario
 	usuario = (
 		db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
 	)
@@ -374,38 +383,31 @@ def cambiar_contrasena_usuario(
 	if not usuario:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail="Usuario no encontrado en la base de datos.",
+			detail="Usuario no encontrado.",
 		)
 
-	# 2. Validar contraseña actual (Soporta hash Bcrypt y texto plano)
-	es_valida = False
-
-	if usuario.password and usuario.password.startswith(("$2a$", "$2b$", "$2y$", "$2x$")):
-		es_valida = verify_password(contrasena_actual, usuario.password)
-	else:
-		es_valida = usuario.password == contrasena_actual
-
-	if not es_valida:
+	# 2. Validar contraseña actual
+	if not verify_password(contrasena_actual, usuario.password):
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
-			detail="La contraseña actual ingresada es incorrecta.",
+			detail="La contraseña actual es incorrecta.",
 		)
 
-	# 3. Generar nuevo hash Bcrypt de 60 caracteres
+	# 3. Generar nuevo hash seguro (Exactamente 60 caracteres)
 	nuevo_hash = get_password_hash(contrasena_nueva)
 
-	# 4. Invocar la función almacenada fn_cambiar_password en la Base de Datos
-	query = text("SELECT fn_cambiar_password(:p_id_usuario, :p_password_hash);")
-
+	# 4. Invocación de la función SQL fn_cambiar_password
 	try:
-		resultado_raw = db.execute(
+		query = text("SELECT fn_cambiar_password(:p_id_usuario, :p_password_hash);")
+		db.execute(
 			query, {"p_id_usuario": id_usuario, "p_password_hash": nuevo_hash}
-		).scalar()
+		)
 		db.commit()
-		return resultado_raw
+		return {"mensaje": "Contraseña actualizada correctamente."}
 	except Exception as err:
 		db.rollback()
+		print(f"Error devuelto por PostgreSQL: {str(err)}")
 		raise HTTPException(
-			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-			detail=f"Error en la base de datos: {str(err)}",
+			status_code=status.HTTP_400_BAD_REQUEST,
+			detail="La base de datos rechazó la actualización de la contraseña.",
 		)
