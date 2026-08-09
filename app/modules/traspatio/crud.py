@@ -370,7 +370,6 @@ def cambiar_contrasena_usuario(
 	contrasena_actual: str,
 	contrasena_nueva: str,
 ):
-	# 1. Buscar al usuario por id_usuario, por columna usuario o por email
 	login_str = str(id_usuario_o_login)
 	usuario = (
 		db.query(models.Usuario)
@@ -387,32 +386,42 @@ def cambiar_contrasena_usuario(
 	)
 
 	if not usuario:
+		print(
+			f"DEBUG: Usuario no encontrado con identificador: {id_usuario_o_login}"
+		)
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
 			detail="Usuario no encontrado.",
 		)
 
-	# 2. Verificar la contraseña actual (revisa hash seguro o texto plano por compatibilidad con SQL)
-	es_valida = False
+	print(
+		f"DEBUG: Usuario encontrado -> ID: {usuario.id_usuario}, Username: {usuario.usuario}"
+	)
+	print(f"DEBUG: Contraseña actual recibida del form: '{contrasena_actual}'")
+	print(f"DEBUG: Contraseña almacenada en BD (hash/texto): {usuario.password}")
 
+	es_valida = False
 	try:
 		es_valida = auth.verify_password(contrasena_actual, usuario.password)
-	except Exception:
+		print(f"DEBUG: Resultado de verify_password: {es_valida}")
+	except Exception as e:
+		print(f"DEBUG: Error al ejecutar verify_password: {e}")
 		es_valida = False
 
-	# Respaldo si fue registrado vía script SQL con texto plano
 	if not es_valida and usuario.password == contrasena_actual:
 		es_valida = True
+		print("DEBUG: Coincidió por texto plano de respaldo.")
 
 	if not es_valida:
+		print("DEBUG: ¡La validación falló!")
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="La contraseña actual ingresada es incorrecta.",
 		)
 
-	# 3. Hashear la nueva contraseña y guardar en la columna 'password'
 	usuario.password = auth.get_password_hash(contrasena_nueva)
 	db.commit()
 	db.refresh(usuario)
+	print("DEBUG: ¡Contraseña cambiada exitosamente!")
 
 	return {"mensaje": "Contraseña actualizada correctamente."}
