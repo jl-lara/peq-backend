@@ -14,6 +14,7 @@ from app.schemas import (
 
 class AnimalRegistradoProductorResponse(BaseModel):
 	id_animal: int
+	arete_id: str | None = None
 	tipo_animal: str
 	raza: str
 	edad_anios: int

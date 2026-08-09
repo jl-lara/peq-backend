@@ -30,6 +30,7 @@ def get_animales_productor(db: Session, id_usuario: int, skip: int = 0, limit: i
 	rows = (
 		db.query(
 			models.Animal.id_animal,
+			models.Animal.arete_id,
 			models.CategoriaGanado.nombre.label("tipo_animal"),
 			models.Raza.nombre.label("raza"),
 			models.Animal.edad.label("edad_anios"),
@@ -52,6 +53,7 @@ def get_animales_productor(db: Session, id_usuario: int, skip: int = 0, limit: i
 	return [
 		{
 			"id_animal": row.id_animal,
+			"arete_id": row.arete_id,
 			"tipo_animal": row.tipo_animal,
 			"raza": row.raza,
 			"edad_anios": row.edad_anios,
