@@ -51,6 +51,21 @@ class DocumentoProductorResponse(BaseModel):
 	class Config:
 		from_attributes = True
 
+
+class ResumenGeneralDashboard(BaseModel):
+	limite_permitido: int | None = 0
+	total_animales_registrados: int = 0
+
+
+class DesgloseCategoriaDashboard(BaseModel):
+	categoria: str
+	total_registrados: int
+
+
+class DashboardProductorResponse(BaseModel):
+	resumen_general: ResumenGeneralDashboard
+	desglose_categorias: list[DesgloseCategoriaDashboard]
+
 __all__ = [
 	"AnimalResponse",
 	"AnimalRegistradoProductorResponse",
@@ -60,4 +75,7 @@ __all__ = [
 	"ActividadProductorResponse",
 	"ProductorPerfilResponse",
 	"DocumentoProductorResponse",
+	"ResumenGeneralDashboard",
+	"DesgloseCategoriaDashboard",
+	"DashboardProductorResponse",
 ]

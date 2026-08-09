@@ -146,3 +146,14 @@ def leer_documentos_productor(
 		db=db,
 		id_usuario=current_user.id_usuario,
 	)
+
+
+@router.get("/traspatio/dashboard/", response_model=schemas.DashboardProductorResponse, tags=["Traspatio"])
+def leer_dashboard_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_dashboard_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+	)

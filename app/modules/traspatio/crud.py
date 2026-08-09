@@ -5,6 +5,7 @@ from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app import models
 
@@ -253,3 +254,18 @@ def get_documentos_productor(db: Session, id_usuario: int):
 		}
 		for row in rows
 	]
+
+def get_dashboard_productor(db: Session, id_usuario: int):
+	# 1. Obtener el id_productor asociado al usuario autenticado
+	productor = _get_productor_for_user(db=db, id_usuario=id_usuario)
+
+	# 2. Ejecutar la función de PostgreSQL
+	result = db.execute(
+		text("SELECT fn_obtener_panel_productor(:id_productor)"),
+		{"id_productor": productor.id_productor},
+	).scalar()
+
+	return result or {
+		"resumen_general": {"limite_permitido": 0, "total_animales_registrados": 0},
+		"desglose_categorias": [],
+	}
