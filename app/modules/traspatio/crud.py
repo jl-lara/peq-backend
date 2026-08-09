@@ -357,22 +357,30 @@ from app import models
 from app.core import auth
 
 
+from fastapi import HTTPException, status
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+from app import models
+from app.core import auth
+
+
 def cambiar_contrasena_usuario(
 	db: Session,
-	id_usuario_o_email: str | int,
+	id_usuario_o_login: str | int,
 	contrasena_actual: str,
 	contrasena_nueva: str,
 ):
-	# 1. Buscar al usuario ya sea por ID numérico o por Email/Usuario
+	# 1. Buscar al usuario por id_usuario, por columna usuario o por email
+	login_str = str(id_usuario_o_login)
 	usuario = (
 		db.query(models.Usuario)
 		.filter(
 			or_(
-				models.Usuario.id_usuario == id_usuario_o_email
-				if str(id_usuario_o_email).isdigit()
+				models.Usuario.id_usuario == int(login_str)
+				if login_str.isdigit()
 				else False,
-				models.Usuario.email == str(id_usuario_o_email),
-				models.Usuario.usuario == str(id_usuario_o_email),
+				models.Usuario.usuario == login_str,
+				models.Usuario.email == login_str,
 			)
 		)
 		.first()
@@ -381,19 +389,18 @@ def cambiar_contrasena_usuario(
 	if not usuario:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail="Usuario no encontrado en la base de datos.",
+			detail="Usuario no encontrado.",
 		)
 
-	# 2. Verificar la contraseña actual (Soporta hash y texto plano)
+	# 2. Verificar la contraseña actual (revisa hash seguro o texto plano por compatibilidad con SQL)
 	es_valida = False
 
 	try:
-		# Intenta verificar con el sistema de hash de auth.py
 		es_valida = auth.verify_password(contrasena_actual, usuario.password)
 	except Exception:
 		es_valida = False
 
-	# Respaldo en caso de que en la BD esté guardada en texto plano
+	# Respaldo si fue registrado vía script SQL con texto plano
 	if not es_valida and usuario.password == contrasena_actual:
 		es_valida = True
 
@@ -403,7 +410,7 @@ def cambiar_contrasena_usuario(
 			detail="La contraseña actual ingresada es incorrecta.",
 		)
 
-	# 3. Guardar la nueva contraseña con el Hash seguro
+	# 3. Hashear la nueva contraseña y guardar en la columna 'password'
 	usuario.password = auth.get_password_hash(contrasena_nueva)
 	db.commit()
 	db.refresh(usuario)
