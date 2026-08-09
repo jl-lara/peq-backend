@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import models
@@ -20,6 +21,46 @@ def _get_productor_for_user(db: Session, id_usuario: int) -> models.Productor:
 
 def get_mi_productor(db: Session, id_usuario: int):
 	return _get_productor_for_user(db=db, id_usuario=id_usuario)
+
+
+def get_animales_productor(db: Session, id_usuario: int, skip: int = 0, limit: int = 100):
+	productor = _get_productor_for_user(db=db, id_usuario=id_usuario)
+
+	rows = (
+		db.query(
+			models.Animal.id_animal,
+			models.CategoriaGanado.nombre.label("tipo_animal"),
+			models.Raza.nombre.label("raza"),
+			models.Animal.edad.label("edad_anios"),
+			models.Animal.peso_kg,
+			models.Estado.nombre.label("estado_certificacion"),
+			func.coalesce(models.PrecioAnimal.precio_final, 0).label("precio_estimado"),
+			models.Animal.fecha_registro,
+		)
+		.join(models.Raza, models.Animal.id_raza == models.Raza.id_raza)
+		.join(models.CategoriaGanado, models.Raza.id_categoria == models.CategoriaGanado.id_categoria)
+		.join(models.Estado, models.Animal.id_estado == models.Estado.id_estado)
+		.outerjoin(models.PrecioAnimal, models.Animal.id_animal == models.PrecioAnimal.id_animal)
+		.filter(models.Animal.id_productor == productor.id_productor)
+		.order_by(models.Animal.fecha_registro.desc())
+		.offset(skip)
+		.limit(limit)
+		.all()
+	)
+
+	return [
+		{
+			"id_animal": row.id_animal,
+			"tipo_animal": row.tipo_animal,
+			"raza": row.raza,
+			"edad_anios": row.edad_anios,
+			"peso_kg": row.peso_kg,
+			"estado_certificacion": row.estado_certificacion,
+			"precio_estimado": float(row.precio_estimado or 0),
+			"fecha_registro": row.fecha_registro,
+		}
+		for row in rows
+	]
 
 
 def get_mis_animales(

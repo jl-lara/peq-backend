@@ -20,6 +20,21 @@ def leer_mi_productor(
 	return crud.get_mi_productor(db=db, id_usuario=current_user.id_usuario)
 
 
+@router.get("/traspatio/animales-productor/", response_model=List[schemas.AnimalRegistradoProductorResponse], tags=["Traspatio"])
+def leer_animales_productor(
+	skip: int = 0,
+	limit: int = 100,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_animales_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		skip=skip,
+		limit=limit,
+	)
+
+
 @router.get("/traspatio/animales/", response_model=List[schemas.AnimalResponse], tags=["Traspatio"])
 def leer_mis_animales(
 	skip: int = 0,
