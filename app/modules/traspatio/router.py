@@ -157,3 +157,12 @@ def leer_dashboard_productor(
 		db=db,
 		id_usuario=current_user.id_usuario,
 	)
+
+
+@router.get("/traspatio/ficha-tecnica/{arete_id}", response_model=schemas.FichaTecnicaAnimalResponse, tags=["Traspatio"])
+def leer_ficha_tecnica_animal(
+	arete_id: str,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_ficha_tecnica_animal(db=db, arete_id=arete_id)

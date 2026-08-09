@@ -269,3 +269,79 @@ def get_dashboard_productor(db: Session, id_usuario: int):
 		"resumen_general": {"limite_permitido": 0, "total_animales_registrados": 0},
 		"desglose_categorias": [],
 	}
+
+
+from fastapi import HTTPException
+from sqlalchemy import text
+
+
+def get_ficha_tecnica_animal(db: Session, arete_id: str):
+	# 1. Consulta principal de la Ficha Técnica
+	query_ficha = text(
+		"""
+        SELECT 
+            a.id_animal,
+            a.arete_id AS no_identificacion,
+            r.nombre AS raza,
+            cg.nombre AS categoria,
+            a.sexo,
+            a.edad,
+            a.peso_kg,
+            a.condicion_general,
+            a.proposito_produccion,
+            a.tiene_crias,
+            a.fecha_registro,
+            a.notas AS notas_adicionales,
+            COALESCE(pa.precio_final, 0) AS precio_venta,
+            
+            p.nombre AS nombre_rancho,
+            rol.nombre AS tipo_rancho,
+            (u_prod.nombre || ' ' || u_prod.apellido_paterno)::VARCHAR AS propietario,
+            u_prod.telefono AS contacto_propietario,
+            (u_prod.ciudad || ', Baja California')::VARCHAR AS ubicacion_origen,
+            
+            ('Dr. ' || u_vet.nombre || ' ' || u_vet.apellido_paterno)::VARCHAR AS certificado_por,
+            dv.cedula_profesional,
+            cert.fecha_certificacion,
+            (cert.fecha_certificacion + INTERVAL '6 months')::DATE AS proxima_revision_sugerida
+            
+        FROM animal a
+        JOIN raza r ON a.id_raza = r.id_raza
+        JOIN categoria_ganado cg ON r.id_categoria = cg.id_categoria
+        LEFT JOIN precio_animal pa ON a.id_animal = pa.id_animal
+        JOIN productores p ON a.id_productor = p.id_productor
+        JOIN usuarios u_prod ON p.id_usuario = u_prod.id_usuario
+        JOIN roles rol ON u_prod.id_rol = rol.id_rol
+        LEFT JOIN solicitudes_certificacion sc ON a.id_animal = sc.id_animal AND sc.id_estado = 4
+        LEFT JOIN certificaciones cert ON sc.id_solicitud = cert.id_solicitud
+        LEFT JOIN usuarios u_vet ON sc.id_veterinario = u_vet.id_usuario
+        LEFT JOIN datos_veterinarios dv ON u_vet.id_usuario = dv.id_usuario
+        WHERE a.arete_id = :arete_id
+        LIMIT 1;
+    """
+	)
+
+	result = db.execute(query_ficha, {"arete_id": arete_id}).mappings().first()
+
+	if not result:
+		raise HTTPException(status_code=404, detail="Ficha técnica no encontrada para el arete especificado.")
+
+	# 2. Consulta de Enfermedades / Estatus Médico
+	query_enfermedades = text(
+		"""
+        SELECT 
+            e.nombre AS enfermedad,
+            ea.estado AS estatus_medico
+        FROM enfermedad_animal ea
+        JOIN enfermedad e ON ea.id_enfermedad = e.id_enfermedad
+        WHERE ea.id_animal = :id_animal;
+    """
+	)
+
+	enfermedades = db.execute(query_enfermedades, {"id_animal": result["id_animal"]}).mappings().all()
+
+	ficha_dict = dict(result)
+	ficha_dict["precio_venta"] = float(ficha_dict["precio_venta"] or 0)
+	ficha_dict["enfermedades"] = [dict(e) for e in enfermedades]
+
+	return ficha_dict
