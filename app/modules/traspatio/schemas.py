@@ -22,6 +22,13 @@ class AnimalRegistradoProductorResponse(BaseModel):
 	precio_estimado: float
 	fecha_registro: datetime
 
+class ActividadProductorResponse(BaseModel):
+	fecha_hora: datetime
+	accion: str
+	entidad: str
+	detalles: str | None = None
+
+
 
 __all__ = [
 	"AnimalResponse",
@@ -29,4 +36,5 @@ __all__ = [
 	"DocumentoResponse",
 	"ProductorResponse",
 	"SolicitudCertificacionResponse",
+	"ActividadProductorResponse",
 ]

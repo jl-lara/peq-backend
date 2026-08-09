@@ -155,3 +155,21 @@ export async function apiGet(path, token) {
 ## Nota importante
 
 El endpoint nuevo responde con datos resumidos del animal, pensados para paneles, listas y consumo ágil desde el frontend.
+
+### Actividades (Bitácora) del productor
+
+- **Método:** `GET`
+- **Ruta:** `/traspatio/actividades/`
+- **Query params opcionales:** `skip`, `limit`
+
+#### Ejemplo de respuesta
+
+```json
+[
+  {
+    "fecha_hora": "2026-08-08T18:30:00",
+    "accion": "CREAR",
+    "entidad": "animal",
+    "detalles": "ID Afectado: 12"
+  }
+]

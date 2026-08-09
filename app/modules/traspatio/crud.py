@@ -156,3 +156,38 @@ def get_mis_solicitudes(
 		query = query.filter(models.SolicitudCertificacion.fecha_solicitud <= fecha_solicitud_hasta)
 
 	return query.offset(skip).limit(limit).all()
+
+
+def get_mis_actividades(
+	db: Session,
+	id_usuario: int,
+	skip: int = 0,
+	limit: int = 100,
+):
+	rows = (
+		db.query(
+			models.Bitacora.fecha_cambio.label("fecha_hora"),
+			models.Accion.nombre.label("accion"),
+			models.Bitacora.tabla_afectada.label("entidad"),
+			func.concat(
+				"ID Afectado: ",
+				func.coalesce(models.Bitacora.valor_nuevo, models.Bitacora.valor_anterior),
+			).label("detalles"),
+		)
+		.join(models.Accion, models.Bitacora.id_accion == models.Accion.id_accion)
+		.filter(models.Bitacora.id_usuario == id_usuario)
+		.order_by(models.Bitacora.fecha_cambio.desc())
+		.offset(skip)
+		.limit(limit)
+		.all()
+	)
+
+	return [
+		{
+			"fecha_hora": row.fecha_hora,
+			"accion": row.accion,
+			"entidad": row.entidad,
+			"detalles": row.detalles,
+		}
+		for row in rows
+	]

@@ -114,3 +114,17 @@ def leer_mis_solicitudes(
 		fecha_solicitud_desde=fecha_solicitud_desde,
 		fecha_solicitud_hasta=fecha_solicitud_hasta,
 	)
+
+@router.get("/traspatio/actividades/", response_model=List[schemas.ActividadProductorResponse], tags=["Traspatio"])
+def leer_mis_actividades(
+	skip: int = 0,
+	limit: int = 100,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_mis_actividades(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		skip=skip,
+		limit=limit,
+	)
