@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.core import auth
+from passlib.context import CryptContext
 
 from app import models
 
@@ -350,18 +351,20 @@ def get_ficha_tecnica_animal(db: Session, arete_id: str):
 	return ficha_dict
 
 
-from fastapi import HTTPException, status
-from sqlalchemy import or_
-from sqlalchemy.orm import Session
-from app import models
-from app.core import auth
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-from fastapi import HTTPException, status
-from sqlalchemy import or_
-from sqlalchemy.orm import Session
-from app import models
-from app.core import auth
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+	"""Verifica la contraseña en texto plano contra el hash almacenado."""
+	try:
+		return pwd_context.verify(plain_password, hashed_password)
+	except Exception:
+		return False
+
+
+def get_password_hash(password: str) -> str:
+	"""Genera un hash seguro con Bcrypt para la nueva contraseña."""
+	return pwd_context.hash(password)
 
 
 def cambiar_contrasena_usuario(
@@ -378,16 +381,26 @@ def cambiar_contrasena_usuario(
 			detail="Usuario no encontrado en la base de datos.",
 		)
 
-	# 2. Verificar si la contraseña actual ingresada coincide con usuario.password
-	# (Si estás usando contraseñas directas o hasheadas desde el login)
-	if usuario.password != contrasena_actual:
+	# 2. Verificación híbrida de la contraseña actual
+	es_valida = False
+
+	# Intento A: Verificación mediante Hash (Bcrypt / Passlib)
+	if usuario.password and verify_password(contrasena_actual, usuario.password):
+		es_valida = True
+
+	# Intento B: Respaldo por Texto Plano (por si se registró directo desde SQL)
+	if not es_valida and usuario.password == contrasena_actual:
+		es_valida = True
+
+	# Si ninguno de los dos métodos coincide, se rechaza
+	if not es_valida:
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="La contraseña actual ingresada es incorrecta.",
 		)
 
-	# 3. Guardar la nueva contraseña
-	usuario.password = contrasena_nueva
+	# 3. Guardar la nueva contraseña siempre encriptada (Hasheada)
+	usuario.password = get_password_hash(contrasena_nueva)
 	db.commit()
 	db.refresh(usuario)
 
