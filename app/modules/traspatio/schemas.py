@@ -108,6 +108,11 @@ class FichaTecnicaAnimalResponse(BaseModel):
 	# 4. Historial/Etiquetas Sanitarias
 	enfermedades: list[EnfermedadStatus] = []
 
+
+class CambiarContrasenaRequest(BaseModel):
+	contrasena_actual: str = Field(..., min_length=1)
+	contrasena_nueva: str = Field(..., min_length=6)
+
 __all__ = [
 	"AnimalResponse",
 	"AnimalRegistradoProductorResponse",
@@ -122,4 +127,5 @@ __all__ = [
 	"DashboardProductorResponse",
 	"FichaTecnicaAnimalResponse",
 	"EnfermedadStatus",
+	"CambiarContrasenaRequest",
 ]

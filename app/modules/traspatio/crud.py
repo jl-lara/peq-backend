@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-
+from passlib.context import CryptContext
 from app import models
 
 
@@ -347,3 +347,65 @@ def get_ficha_tecnica_animal(db: Session, arete_id: str):
 	ficha_dict["enfermedades"] = [dict(e) for e in enfermedades]
 
 	return ficha_dict
+
+# Configuración del motor Bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+	try:
+		return pwd_context.verify(plain_password, hashed_password)
+	except Exception:
+		return False
+
+
+def get_password_hash(password: str) -> str:
+	return pwd_context.hash(password)
+
+
+def cambiar_contrasena_usuario(
+	db: Session, id_usuario: int, contrasena_actual: str, contrasena_nueva: str
+):
+	# 1. Obtener al usuario autenticado
+	usuario = (
+		db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
+	)
+
+	if not usuario:
+		raise HTTPException(
+			status_code=status.HTTP_404_NOT_FOUND,
+			detail="Usuario no encontrado en la base de datos.",
+		)
+
+	# 2. Validar contraseña actual (Soporta hash Bcrypt y texto plano)
+	es_valida = False
+
+	if usuario.password and usuario.password.startswith(("$2a$", "$2b$", "$2y$", "$2x$")):
+		es_valida = verify_password(contrasena_actual, usuario.password)
+	else:
+		es_valida = usuario.password == contrasena_actual
+
+	if not es_valida:
+		raise HTTPException(
+			status_code=status.HTTP_400_BAD_REQUEST,
+			detail="La contraseña actual ingresada es incorrecta.",
+		)
+
+	# 3. Generar nuevo hash Bcrypt de 60 caracteres
+	nuevo_hash = get_password_hash(contrasena_nueva)
+
+	# 4. Invocar la función almacenada fn_cambiar_password en la Base de Datos
+	query = text("SELECT fn_cambiar_password(:p_id_usuario, :p_password_hash);")
+
+	try:
+		resultado_raw = db.execute(
+			query, {"p_id_usuario": id_usuario, "p_password_hash": nuevo_hash}
+		).scalar()
+		db.commit()
+		return resultado_raw
+	except Exception as err:
+		db.rollback()
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"Error en la base de datos: {str(err)}",
+		)

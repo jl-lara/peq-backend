@@ -166,3 +166,16 @@ def leer_ficha_tecnica_animal(
 	current_user=Depends(auth.get_current_user),
 ):
 	return crud.get_ficha_tecnica_animal(db=db, arete_id=arete_id)
+
+@router.put("/traspatio/perfil/cambiar-contrasena/", tags=["Traspatio"])
+def actualizar_contrasena_productor(
+	payload: schemas.CambiarContrasenaRequest,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.cambiar_contrasena_usuario(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		contrasena_actual=payload.contrasena_actual,
+		contrasena_nueva=payload.contrasena_nueva,
+	)
