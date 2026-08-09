@@ -365,63 +365,30 @@ from app.core import auth
 
 
 def cambiar_contrasena_usuario(
-	db: Session,
-	id_usuario_o_login: str | int,
-	contrasena_actual: str,
-	contrasena_nueva: str,
+	db: Session, id_usuario: int, contrasena_actual: str, contrasena_nueva: str
 ):
-	login_str = str(id_usuario_o_login)
+	# 1. Obtener al usuario por su ID
 	usuario = (
-		db.query(models.Usuario)
-		.filter(
-			or_(
-				models.Usuario.id_usuario == int(login_str)
-				if login_str.isdigit()
-				else False,
-				models.Usuario.usuario == login_str,
-				models.Usuario.email == login_str,
-			)
-		)
-		.first()
+		db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
 	)
 
 	if not usuario:
-		print(
-			f"DEBUG: Usuario no encontrado con identificador: {id_usuario_o_login}"
-		)
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail="Usuario no encontrado.",
+			detail="Usuario no encontrado en la base de datos.",
 		)
 
-	print(
-		f"DEBUG: Usuario encontrado -> ID: {usuario.id_usuario}, Username: {usuario.usuario}"
-	)
-	print(f"DEBUG: Contraseña actual recibida del form: '{contrasena_actual}'")
-	print(f"DEBUG: Contraseña almacenada en BD (hash/texto): {usuario.password}")
-
-	es_valida = False
-	try:
-		es_valida = auth.verify_password(contrasena_actual, usuario.password)
-		print(f"DEBUG: Resultado de verify_password: {es_valida}")
-	except Exception as e:
-		print(f"DEBUG: Error al ejecutar verify_password: {e}")
-		es_valida = False
-
-	if not es_valida and usuario.password == contrasena_actual:
-		es_valida = True
-		print("DEBUG: Coincidió por texto plano de respaldo.")
-
-	if not es_valida:
-		print("DEBUG: ¡La validación falló!")
+	# 2. Verificar si la contraseña actual ingresada coincide con usuario.password
+	# (Si estás usando contraseñas directas o hasheadas desde el login)
+	if usuario.password != contrasena_actual:
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="La contraseña actual ingresada es incorrecta.",
 		)
 
-	usuario.password = auth.get_password_hash(contrasena_nueva)
+	# 3. Guardar la nueva contraseña
+	usuario.password = contrasena_nueva
 	db.commit()
 	db.refresh(usuario)
-	print("DEBUG: ¡Contraseña cambiada exitosamente!")
 
 	return {"mensaje": "Contraseña actualizada correctamente."}
