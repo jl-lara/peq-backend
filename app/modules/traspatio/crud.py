@@ -4,7 +4,7 @@ from datetime import datetime
 
 import bcrypt
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import text
