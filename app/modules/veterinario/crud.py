@@ -1,8 +1,9 @@
 """Adaptador CRUD del modulo veterinario sobre la capa existente."""
 
+import json
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app import crud as legacy_crud
@@ -166,6 +167,46 @@ def get_perfil_veterinario(db: Session, id_usuario: int):
 		"especialidad": perfil.especialidad,
 		"universidad": perfil.universidad,
 		"total_certificaciones": int(perfil.total_certificaciones or 0),
+	}
+
+
+def get_perfil_veterinario_detallado(db: Session, id_usuario: int):
+	row = (
+		db.execute(
+			text("SELECT fn_obtener_perfil_veterinario(:id_usuario) AS perfil"),
+			{"id_usuario": id_usuario},
+		)
+		.mappings()
+		.first()
+	)
+	if row is None:
+		return None
+
+	perfil = row.get("perfil")
+	if isinstance(perfil, str):
+		perfil = json.loads(perfil)
+	if not perfil:
+		return None
+
+	return {
+		"resumen": {
+			"certificaciones_realizadas": int(perfil.get("total_certificaciones") or 0),
+			"miembro_desde": perfil.get("fecha_registro"),
+		},
+		"datos_personales": {
+			"nombre_completo": perfil.get("nombre_completo"),
+			"curp": perfil.get("curp"),
+			"email": perfil.get("email"),
+			"telefono": perfil.get("telefono"),
+			"municipio": perfil.get("ciudad"),
+			"estado": perfil.get("estado_usuario"),
+		},
+		"datos_profesionales": {
+			"cedula_profesional": perfil.get("cedula_profesional"),
+			"especialidad": perfil.get("especialidad"),
+			"universidad": perfil.get("universidad"),
+			"fecha_registro": perfil.get("fecha_registro"),
+		},
 	}
 
 

@@ -69,6 +69,59 @@ Ejemplo de respuesta:
 }
 ```
 
+### 1.1 Perfil detallado del veterinario autenticado
+
+Devuelve la información preparada para la vista principal del perfil, usando la función `fn_obtener_perfil_veterinario` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/perfil-detallado/`
+
+Estructura principal de respuesta:
+
+- `resumen`
+- `datos_personales`
+- `datos_profesionales`
+
+Campos principales por sección:
+
+- `resumen.certificaciones_realizadas`
+- `resumen.miembro_desde`
+- `datos_personales.nombre_completo`
+- `datos_personales.curp`
+- `datos_personales.email`
+- `datos_personales.telefono`
+- `datos_personales.municipio`
+- `datos_personales.estado`
+- `datos_profesionales.cedula_profesional`
+- `datos_profesionales.especialidad`
+- `datos_profesionales.universidad`
+- `datos_profesionales.fecha_registro`
+
+Ejemplo de respuesta:
+
+```json
+{
+  "resumen": {
+    "certificaciones_realizadas": 12,
+    "miembro_desde": "2026-08-08T12:30:00"
+  },
+  "datos_personales": {
+    "nombre_completo": "María Gómez López",
+    "curp": null,
+    "email": "maria@veterinaria.com",
+    "telefono": "5559876543",
+    "municipio": "Zapopan",
+    "estado": "Jalisco"
+  },
+  "datos_profesionales": {
+    "cedula_profesional": "CED-9876543",
+    "especialidad": "Bovinos y Porcinos",
+    "universidad": "UNAM",
+    "fecha_registro": "2026-08-08T12:30:00"
+  }
+}
+```
+
 ### 2. Solicitudes asignadas al veterinario
 
 Lista las solicitudes de certificación asignadas al veterinario autenticado.

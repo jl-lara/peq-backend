@@ -28,6 +28,33 @@ class PerfilVeterinarioResponse(BaseModel):
 	total_certificaciones: int
 
 
+class PerfilVeterinarioResumenResponse(BaseModel):
+	certificaciones_realizadas: int
+	miembro_desde: datetime
+
+
+class PerfilVeterinarioDatosPersonalesResponse(BaseModel):
+	nombre_completo: str
+	curp: Optional[str] = None
+	email: str
+	telefono: Optional[str] = None
+	municipio: Optional[str] = None
+	estado: Optional[str] = None
+
+
+class PerfilVeterinarioDatosProfesionalesResponse(BaseModel):
+	cedula_profesional: str
+	especialidad: Optional[str] = None
+	universidad: Optional[str] = None
+	fecha_registro: datetime
+
+
+class PerfilVeterinarioDetalladoResponse(BaseModel):
+	resumen: PerfilVeterinarioResumenResponse
+	datos_personales: PerfilVeterinarioDatosPersonalesResponse
+	datos_profesionales: PerfilVeterinarioDatosProfesionalesResponse
+
+
 class SolicitudPanelVeterinarioResponse(BaseModel):
 	codigo_solicitud: str
 	id_solicitud: int
@@ -63,6 +90,10 @@ __all__ = [
 	"PerfilVeterinarioResponse",
 	"SolicitudPanelVeterinarioResponse",
 	"BitacoraVeterinarioResponse",
+	"PerfilVeterinarioDatosPersonalesResponse",
+	"PerfilVeterinarioDatosProfesionalesResponse",
+	"PerfilVeterinarioDetalladoResponse",
+	"PerfilVeterinarioResumenResponse",
 	"DocumentoVeterinarioResponse",
 	"SolicitudCertificacionCreate",
 	"SolicitudCertificacionResponse",

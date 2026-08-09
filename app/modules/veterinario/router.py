@@ -33,6 +33,19 @@ def leer_perfil_veterinario(current_user=Depends(require_veterinario_user), db: 
 	return perfil
 
 
+@router.get(
+	"/perfil-detallado/",
+	response_model=schemas.PerfilVeterinarioDetalladoResponse,
+	response_model_exclude_none=True,
+	tags=["Panel Veterinario"],
+)
+def leer_perfil_veterinario_detallado(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	perfil = crud.get_perfil_veterinario_detallado(db=db, id_usuario=current_user.id_usuario)
+	if perfil is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontró el perfil detallado del veterinario autenticado")
+	return perfil
+
+
 @router.get("/solicitudes-panel/", response_model=List[schemas.SolicitudPanelVeterinarioResponse], tags=["Panel Veterinario"])
 def leer_solicitudes_panel(
 	id_estado: int | None = None,
