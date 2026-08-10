@@ -1,8 +1,8 @@
 import json
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Optional
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
+from typing import Optional
 
 def obtener_panel_productor(db: Session, id_usuario: int):
 	# 1. Obtener el id_productor asociado al id_usuario autenticado

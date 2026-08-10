@@ -47,4 +47,7 @@ __all__ = [
 	"ResumenGeneralPanel",
 	"DesgloseCategoriaPanel",
 	"PanelProductorResponse",
+	"DocumentoAnimalRequest",
+	"EditarAnimalRequest",
+	"AnimalCatalogoResponse",
 ]
