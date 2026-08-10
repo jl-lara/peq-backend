@@ -34,9 +34,7 @@ class PerfilVeterinarioResumenResponse(BaseModel):
 
 
 class PerfilVeterinarioDatosPersonalesResponse(BaseModel):
-	nombre: str
-	apellido_paterno: str
-	apellido_materno: Optional[str] = None
+	nombre_completo: str
 	curp: Optional[str] = None
 	email: str
 	telefono: Optional[str] = None

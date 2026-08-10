@@ -194,10 +194,7 @@ def get_perfil_veterinario_detallado(db: Session, id_usuario: int):
 			"miembro_desde": perfil.get("fecha_registro"),
 		},
 		"datos_personales": {
-			"nombre": perfil.get("nombre"),
-			"apellido_paterno": perfil.get("apellido_paterno"),
-			"apellido_materno": perfil.get("apellido_materno"),
-			"nombre_completo": f"{perfil.get('nombre')} {perfil.get('apellido_paterno')} {perfil.get('apellido_materno') or ''}".strip(),
+			"nombre_completo": perfil.get("nombre_completo"),
 			"curp": perfil.get("curp"),
 			"email": perfil.get("email"),
 			"telefono": perfil.get("telefono"),
