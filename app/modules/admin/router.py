@@ -166,6 +166,7 @@ def leer_bitacora_sistema(
 
 @router.get("/documentos-revision/", response_model=List[schemas.DocumentoRevisionAdminResponse], tags=["Panel Administrador"])
 def leer_documentos_revision(
+	id_animal: int | None = None,
 	id_usuario_subio: int | None = None,
 	id_validador: int | None = None,
 	id_estado: int | None = None,
@@ -176,6 +177,7 @@ def leer_documentos_revision(
 ):
 	return crud.get_documentos_revision_admin(
 		db=db,
+		id_animal=id_animal,
 		id_usuario_subio=id_usuario_subio,
 		id_validador=id_validador,
 		id_estado=id_estado,
@@ -266,6 +268,7 @@ def crear_documento(documento: schemas.DocumentoCreate, db: Session = Depends(ge
 def leer_documentos(
 	skip: int = 0,
 	limit: int = 100,
+	id_animal: int | None = None,
 	id_usuario_subio: int | None = None,
 	id_validador: int | None = None,
 	id_estado: int | None = None,
@@ -278,6 +281,7 @@ def leer_documentos(
 		db=db,
 		skip=skip,
 		limit=limit,
+		id_animal=id_animal,
 		id_usuario_subio=id_usuario_subio,
 		id_validador=id_validador,
 		id_estado=id_estado,

@@ -150,6 +150,7 @@ def get_documentos(
 	db: Session,
 	skip: int = 0,
 	limit: int = 100,
+	id_animal: int | None = None,
 	id_usuario_subio: int | None = None,
 	id_validador: int | None = None,
 	id_estado: int | None = None,
@@ -161,6 +162,7 @@ def get_documentos(
 		db=db,
 		skip=skip,
 		limit=limit,
+		id_animal=id_animal,
 		id_usuario_subio=id_usuario_subio,
 		id_validador=id_validador,
 		id_estado=id_estado,
@@ -506,6 +508,7 @@ def get_bitacora_admin(
 
 def get_documentos_revision_admin(
 	db: Session,
+	id_animal: int | None = None,
 	id_usuario_subio: int | None = None,
 	id_validador: int | None = None,
 	id_estado: int | None = None,
@@ -516,6 +519,7 @@ def get_documentos_revision_admin(
 	query = (
 		db.query(
 			models.Documento.id_doc_animal,
+			models.Documento.id_animal,
 			models.Documento.id_usuario_subio,
 			models.TipoDoc.nombre.label("tipo_documento"),
 			models.Documento.url_archivo,
@@ -526,6 +530,8 @@ def get_documentos_revision_admin(
 		.join(models.TipoDoc, models.Documento.id_tipo_doc == models.TipoDoc.id_tipo_doc)
 		.join(models.Estado, models.Documento.id_estado == models.Estado.id_estado)
 	)
+	if id_animal is not None:
+		query = query.filter(models.Documento.id_animal == id_animal)
 	if id_usuario_subio is not None:
 		query = query.filter(models.Documento.id_usuario_subio == id_usuario_subio)
 	if id_validador is not None:
@@ -543,6 +549,7 @@ def get_documentos_revision_admin(
 	return [
 		{
 			"id_doc_animal": row.id_doc_animal,
+			"id_animal": row.id_animal,
 			"id_usuario_subio": row.id_usuario_subio,
 			"tipo_documento": row.tipo_documento,
 			"enlace_documento": row.url_archivo,

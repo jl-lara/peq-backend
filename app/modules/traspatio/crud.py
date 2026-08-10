@@ -67,12 +67,15 @@ def get_mis_documentos(
 	id_usuario: int,
 	skip: int = 0,
 	limit: int = 100,
+	id_animal: int | None = None,
 	id_estado: int | None = None,
 	id_tipo_doc: int | None = None,
 	fecha_subida_desde: datetime | None = None,
 	fecha_subida_hasta: datetime | None = None,
 ):
 	query = db.query(models.Documento).filter(models.Documento.id_usuario_subio == id_usuario)
+	if id_animal is not None:
+		query = query.filter(models.Documento.id_animal == id_animal)
 	if id_estado is not None:
 		query = query.filter(models.Documento.id_estado == id_estado)
 	if id_tipo_doc is not None:

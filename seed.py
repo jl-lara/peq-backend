@@ -417,6 +417,7 @@ def seed_datos_operativos(db, usuarios, categorias, razas, estados, acciones, pr
             get_or_create(
                 db,
                 models.Documento,
+                id_animal=animal.id_animal,
                 id_usuario_subio=usuarios["miguel.castaneda"].id_usuario,
                 id_tipo_doc=doc_ine.id_tipo_doc,
                 defaults={

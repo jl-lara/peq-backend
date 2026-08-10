@@ -51,6 +51,7 @@ class BitacoraVeterinarioResponse(BaseModel):
 
 class DocumentoVeterinarioResponse(BaseModel):
 	nombre_documento: str
+	id_animal: Optional[int] = None
 	enlace_documento: str
 	estado_documento: str
 	fecha_revision: Optional[datetime] = None

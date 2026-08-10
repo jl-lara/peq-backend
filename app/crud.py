@@ -392,6 +392,7 @@ def get_documentos(
     db: Session,
     skip: int = 0,
     limit: int = 100,
+    id_animal: Optional[int] = None,
     id_usuario_subio: Optional[int] = None,
     id_validador: Optional[int] = None,
     id_estado: Optional[int] = None,
@@ -400,6 +401,8 @@ def get_documentos(
     fecha_subida_hasta: Optional[datetime] = None,
 ):
     query = db.query(models.Documento)
+    if id_animal is not None:
+        query = query.filter(models.Documento.id_animal == id_animal)
     if id_usuario_subio is not None:
         query = query.filter(models.Documento.id_usuario_subio == id_usuario_subio)
     if id_validador is not None:
@@ -416,6 +419,7 @@ def get_documentos(
 
 def create_documento(db: Session, documento: schemas.DocumentoCreate):
     _validate_estado_for_flow(db, documento.id_estado, "documento")
+    _get_entity_or_404(db, models.Animal, "id_animal", documento.id_animal, "Animal")
 
     db_documento = models.Documento(**documento.model_dump())
     db.add(db_documento)
@@ -427,7 +431,7 @@ def create_documento(db: Session, documento: schemas.DocumentoCreate):
         db.rollback()
         raise HTTPException(
             status_code=400, 
-            detail="Error al registrar documento: Verifica que el usuario, estado y tipo de documento existan."
+            detail="Error al registrar documento: Verifica que el animal, usuario, estado y tipo de documento existan."
         )
     
 # ==========================================
@@ -792,6 +796,7 @@ def delete_requisito_doc(db: Session, id_rol: int, id_tipo_doc: int):
 
 def update_documento(db: Session, id_doc_animal: int, documento: schemas.DocumentoCreate):
     _validate_estado_for_flow(db, documento.id_estado, "documento")
+    _get_entity_or_404(db, models.Animal, "id_animal", documento.id_animal, "Animal")
     db_documento = _get_entity_or_404(db, models.Documento, "id_doc_animal", id_doc_animal, "Documento")
     for field, value in documento.model_dump().items():
         setattr(db_documento, field, value)

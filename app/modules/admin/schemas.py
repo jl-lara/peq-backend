@@ -66,6 +66,7 @@ class LogActividadAdminResponse(BaseModel):
 
 class DocumentoRevisionAdminResponse(BaseModel):
 	id_doc_animal: int
+	id_animal: Optional[int] = None
 	id_usuario_subio: int
 	tipo_documento: str
 	enlace_documento: str

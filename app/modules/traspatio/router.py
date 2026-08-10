@@ -57,6 +57,7 @@ def leer_mis_animales(
 def leer_mis_documentos(
 	skip: int = 0,
 	limit: int = 100,
+	id_animal: int | None = None,
 	id_estado: int | None = None,
 	id_tipo_doc: int | None = None,
 	fecha_subida_desde: datetime | None = None,
@@ -69,6 +70,7 @@ def leer_mis_documentos(
 		id_usuario=current_user.id_usuario,
 		skip=skip,
 		limit=limit,
+		id_animal=id_animal,
 		id_estado=id_estado,
 		id_tipo_doc=id_tipo_doc,
 		fecha_subida_desde=fecha_subida_desde,

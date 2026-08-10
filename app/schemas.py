@@ -290,6 +290,7 @@ class RequisitoDocRolResponse(RequisitoDocRolBase):
 # ==========================================
 
 class DocumentoBase(BaseModel):
+    id_animal: Optional[int] = None
     id_usuario_subio: int
     id_validador: Optional[int] = None
     id_estado: int
@@ -300,7 +301,7 @@ class DocumentoBase(BaseModel):
     fecha_revision: Optional[datetime] = None
 
 class DocumentoCreate(DocumentoBase):
-    pass
+    id_animal: int
 
 class DocumentoResponse(DocumentoBase):
     id_doc_animal: int

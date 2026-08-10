@@ -209,10 +209,12 @@ class Animal(Base):
     precios_animales: Mapped[List["PrecioAnimal"]] = relationship(back_populates="animal")
     enfermedades: Mapped[List["EnfermedadAnimal"]] = relationship(back_populates="animal")
     solicitudes: Mapped[List["SolicitudCertificacion"]] = relationship(back_populates="animal")
+    documentos: Mapped[List["Documento"]] = relationship(back_populates="animal")
 
 class Documento(Base):
     __tablename__ = "documentos_animal"
     id_doc_animal: Mapped[int] = mapped_column(primary_key=True)
+    id_animal: Mapped[Optional[int]] = mapped_column(ForeignKey("animal.id_animal"))
     id_usuario_subio: Mapped[int] = mapped_column(ForeignKey("usuarios.id_usuario"))
     id_validador: Mapped[Optional[int]] = mapped_column(ForeignKey("usuarios.id_usuario"))
     id_estado: Mapped[int] = mapped_column(ForeignKey("estados.id_estado"))
@@ -226,6 +228,7 @@ class Documento(Base):
     validador: Mapped[Optional["Usuario"]] = relationship(foreign_keys=[id_validador], back_populates="documentos_validados")
     estado: Mapped["Estado"] = relationship(back_populates="documentos")
     tipo_doc: Mapped["TipoDoc"] = relationship(back_populates="documentos")
+    animal: Mapped[Optional["Animal"]] = relationship(back_populates="documentos")
 
 class SolicitudCertificacion(Base):
     __tablename__ = "solicitudes_certificacion"

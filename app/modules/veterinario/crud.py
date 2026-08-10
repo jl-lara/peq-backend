@@ -248,6 +248,7 @@ def get_documentos_vet(db: Session, id_usuario: int):
 	rows = (
 		db.query(
 			models.TipoDoc.nombre.label("nombre_documento"),
+			models.Documento.id_animal,
 			models.Documento.url_archivo,
 			models.Estado.nombre.label("estado_documento"),
 			models.Documento.fecha_revision,
@@ -261,6 +262,7 @@ def get_documentos_vet(db: Session, id_usuario: int):
 	return [
 		{
 			"nombre_documento": row.nombre_documento,
+			"id_animal": row.id_animal,
 			"enlace_documento": row.url_archivo,
 			"estado_documento": row.estado_documento,
 			"fecha_revision": row.fecha_revision,
