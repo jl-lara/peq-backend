@@ -412,6 +412,12 @@ def cambiar_contrasena_usuario(
 			detail="La base de datos rechazó la actualización de la contraseña.",
 		)
 	
+import json
+from fastapi import HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+
 def editar_perfil_productor(
 	db: Session,
 	id_usuario: int,
@@ -427,6 +433,7 @@ def editar_perfil_productor(
 	superficie_hectareas: float,
 	documentos: list | None = None,
 ):
+	# Se reemplaza la sintaxis ::json por CAST(:p_documentos AS JSON) para evitar conflicto en SQLAlchemy
 	query = text(
 		"""
         SELECT fn_editar_perfil_productor(
@@ -441,13 +448,13 @@ def editar_perfil_productor(
             :p_direccion,
             :p_capacidad_animales,
             :p_superficie_hectareas,
-            :p_documentos::json
+            CAST(:p_documentos AS JSON)
         );
     """
 	)
 
-	# Convertir lista de documentos a JSON string
-	documentos_json = json.dumps(documentos) if documentos else None
+	# Convertir el arreglo de documentos a string JSON
+	documentos_json = json.dumps(documentos) if documentos else json.dumps([])
 
 	try:
 		resultado = db.execute(
@@ -472,6 +479,7 @@ def editar_perfil_productor(
 		return resultado
 	except Exception as err:
 		db.rollback()
+		print(f"Error al ejecutar fn_editar_perfil_productor: {str(err)}")
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail=f"Error al actualizar el perfil del productor: {str(err)}",
