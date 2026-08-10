@@ -61,3 +61,15 @@ def obtener_animales_productor(db: Session, id_usuario: int):
 			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
 			detail=f"Error al obtener los animales del productor: {str(err)}",
 		)
+
+def obtener_actividad_productor(db: Session, id_usuario: int):
+	query = text("SELECT fn_obtener_actividad_productor(:p_id_usuario);")
+	try:
+		resultado = db.execute(query, {"p_id_usuario": id_usuario}).scalar()
+		return resultado or []
+	except Exception as err:
+		print(f"Error al ejecutar fn_obtener_actividad_productor: {str(err)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"Error al consultar el historial de actividad: {str(err)}",
+		)

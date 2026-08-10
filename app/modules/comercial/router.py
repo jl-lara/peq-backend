@@ -29,3 +29,11 @@ def obtener_mis_animales(
 	return crud.obtener_animales_productor(
 		db=db, id_usuario=current_user.id_usuario
 	)
+
+@router.get("/comercial/actividades/", tags=["Comercial"])
+def listar_actividades_comercial(
+	db: Session = Depends(get_db), current_user=Depends(auth.get_current_user)
+):
+	return crud.obtener_actividad_productor(
+		db=db, id_usuario=current_user.id_usuario
+	)
