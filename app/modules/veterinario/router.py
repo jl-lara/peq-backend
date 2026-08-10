@@ -33,6 +33,51 @@ def leer_perfil_veterinario(current_user=Depends(require_veterinario_user), db: 
 	return perfil
 
 
+@router.get(
+	"/perfil-detallado/",
+	response_model=schemas.PerfilVeterinarioDetalladoResponse,
+	response_model_exclude_none=True,
+	tags=["Panel Veterinario"],
+)
+def leer_perfil_veterinario_detallado(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	perfil = crud.get_perfil_veterinario_detallado(db=db, id_usuario=current_user.id_usuario)
+	if perfil is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontró el perfil detallado del veterinario autenticado")
+	return perfil
+
+
+@router.put(
+	"/perfil-actualizar-db/",
+	response_model=schemas.PerfilVeterinarioActualizarDBResponse,
+	tags=["Panel Veterinario"],
+)
+def actualizar_perfil_veterinario_db(
+	perfil: schemas.PerfilVeterinarioActualizarDBRequest,
+	current_user=Depends(require_veterinario_user),
+	db: Session = Depends(get_db),
+):
+	resultado = crud.update_perfil_veterinario_db(db=db, id_usuario=current_user.id_usuario, perfil=perfil.model_dump())
+	if resultado is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se pudo actualizar el perfil del veterinario autenticado")
+	return resultado
+
+
+@router.put(
+	"/revision-certificacion-db/",
+	response_model=schemas.RevisionCertificacionVeterinariaDBResponse,
+	tags=["Panel Veterinario"],
+)
+def registrar_revision_certificacion_db(
+	revision: schemas.RevisionCertificacionVeterinariaDBRequest,
+	current_user=Depends(require_veterinario_user),
+	db: Session = Depends(get_db),
+):
+	resultado = crud.registrar_revision_veterinaria_db(db=db, revision=revision.model_dump())
+	if resultado is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se pudo registrar la revisión de la certificación")
+	return resultado
+
+
 @router.get("/solicitudes-panel/", response_model=List[schemas.SolicitudPanelVeterinarioResponse], tags=["Panel Veterinario"])
 def leer_solicitudes_panel(
 	id_estado: int | None = None,
@@ -42,14 +87,45 @@ def leer_solicitudes_panel(
 	return crud.get_solicitudes_panel_vet(db=db, id_veterinario=current_user.id_usuario, id_estado=id_estado)
 
 
+@router.get(
+	"/solicitudes-panel-db/",
+	response_model=List[schemas.SolicitudPanelVeterinarioDBResponse],
+	tags=["Panel Veterinario"],
+)
+def leer_solicitudes_panel_db(
+	id_estado: int | None = None,
+	current_user=Depends(require_veterinario_user),
+	db: Session = Depends(get_db),
+):
+	return crud.get_solicitudes_panel_vet_db(db=db, id_veterinario=current_user.id_usuario, id_estado=id_estado)
+
+
 @router.get("/bitacora/", response_model=List[schemas.BitacoraVeterinarioResponse], tags=["Panel Veterinario"])
 def leer_bitacora_veterinario(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
 	return crud.get_bitacora_vet(db=db, id_usuario=current_user.id_usuario)
 
 
+@router.get(
+	"/bitacora-db/",
+	response_model=List[schemas.BitacoraVeterinarioDBResponse],
+	tags=["Panel Veterinario"],
+)
+def leer_bitacora_veterinario_db(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	return crud.get_bitacora_vet_db(db=db, id_usuario=current_user.id_usuario)
+
+
 @router.get("/documentos-subidos/", response_model=List[schemas.DocumentoVeterinarioResponse], tags=["Panel Veterinario"])
 def leer_documentos_subidos(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
 	return crud.get_documentos_vet(db=db, id_usuario=current_user.id_usuario)
+
+
+@router.get(
+	"/documentos-subidos-db/",
+	response_model=List[schemas.DocumentoVeterinarioDBResponse],
+	tags=["Panel Veterinario"],
+)
+def leer_documentos_subidos_db(current_user=Depends(require_veterinario_user), db: Session = Depends(get_db)):
+	return crud.get_documentos_vet_db(db=db, id_usuario=current_user.id_usuario)
 
 
 @router.post("/veterinarios/", response_model=schemas.DatosVeterinariosResponse, tags=["Flujo Certificación"])

@@ -1,8 +1,9 @@
 """Adaptador CRUD del modulo veterinario sobre la capa existente."""
 
+import json
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app import crud as legacy_crud
@@ -169,6 +170,126 @@ def get_perfil_veterinario(db: Session, id_usuario: int):
 	}
 
 
+def get_perfil_veterinario_detallado(db: Session, id_usuario: int):
+	row = (
+		db.execute(
+			text("SELECT fn_obtener_perfil_veterinario(:id_usuario) AS perfil"),
+			{"id_usuario": id_usuario},
+		)
+		.mappings()
+		.first()
+	)
+	if row is None:
+		return None
+
+	perfil = row.get("perfil")
+	if isinstance(perfil, str):
+		perfil = json.loads(perfil)
+	if not perfil:
+		return None
+
+	return {
+		"resumen": {
+			"certificaciones_realizadas": int(perfil.get("total_certificaciones") or 0),
+			"miembro_desde": perfil.get("fecha_registro"),
+		},
+		"datos_personales": {
+			"nombre_completo": perfil.get("nombre_completo"),
+			"curp": perfil.get("curp"),
+			"email": perfil.get("email"),
+			"telefono": perfil.get("telefono"),
+			"municipio": perfil.get("ciudad"),
+			"estado": perfil.get("estado_usuario"),
+		},
+		"datos_profesionales": {
+			"cedula_profesional": perfil.get("cedula_profesional"),
+			"especialidad": perfil.get("especialidad"),
+			"universidad": perfil.get("universidad"),
+			"fecha_registro": perfil.get("fecha_registro"),
+		},
+	}
+
+
+def update_perfil_veterinario_db(db: Session, id_usuario: int, perfil: dict):
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_actualizar_perfil_veterinario(
+					:p_id_usuario,
+					:p_nombre,
+					:p_apellido_paterno,
+					:p_apellido_materno,
+					:p_email,
+					:p_telefono,
+					:p_ciudad,
+					:p_especialidad
+				) AS resultado
+				"""
+			),
+			{
+				"p_id_usuario": id_usuario,
+				"p_nombre": perfil.get("nombre"),
+				"p_apellido_paterno": perfil.get("apellido_paterno"),
+				"p_apellido_materno": perfil.get("apellido_materno"),
+				"p_email": perfil.get("email"),
+				"p_telefono": perfil.get("telefono"),
+				"p_ciudad": perfil.get("ciudad"),
+				"p_especialidad": perfil.get("especialidad"),
+			},
+		).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
+
+
+def registrar_revision_veterinaria_db(db: Session, revision: dict):
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_registrar_revision_veterinaria(
+					:p_id_solicitud,
+					:p_peso_validado,
+					:p_caracteristicas_validadas,
+					:p_observaciones_medicas,
+					:p_dictamen,
+					:p_id_estado_nuevo
+				) AS resultado
+				"""
+			),
+			{
+				"p_id_solicitud": revision.get("id_solicitud"),
+				"p_peso_validado": revision.get("peso_validado"),
+				"p_caracteristicas_validadas": revision.get("caracteristicas_validadas"),
+				"p_observaciones_medicas": revision.get("observaciones_medicas"),
+				"p_dictamen": revision.get("dictamen"),
+				"p_id_estado_nuevo": revision.get("id_estado_nuevo"),
+			},
+		).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
+
+
 def get_solicitudes_panel_vet(
 	db: Session,
 	id_veterinario: int,
@@ -219,6 +340,39 @@ def get_solicitudes_panel_vet(
 	]
 
 
+def get_solicitudes_panel_vet_db(
+	db: Session,
+	id_veterinario: int,
+	id_estado: int | None = None,
+):
+	resultado = db.execute(
+		text("SELECT fn_obtener_solicitudes_vet(:id_veterinario, :id_estado) AS solicitudes"),
+		{"id_veterinario": id_veterinario, "id_estado": id_estado},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"codigo_solicitud": row.get("codigo_solicitud"),
+			"arete_animal": row.get("arete_animal"),
+			"tipo_ganado": row.get("tipo_ganado"),
+			"nombre_productor": row.get("nombre_productor"),
+			"rancho": row.get("rancho"),
+			"raza": row.get("raza"),
+			"edad_anios": row.get("edad_anios"),
+			"peso_est_kg": row.get("peso_est_kg"),
+			"fecha_solicitud": row.get("fecha_solicitud"),
+			"estado_solicitud": row.get("estado_solicitud"),
+		}
+		for row in (resultado or [])
+	]
+
+
 def get_bitacora_vet(db: Session, id_usuario: int):
 	rows = (
 		db.query(
@@ -241,6 +395,29 @@ def get_bitacora_vet(db: Session, id_usuario: int):
 			"detalles": f"ID Modificado: {row.valor_nuevo or row.valor_anterior or ''}",
 		}
 		for row in rows
+	]
+
+
+def get_bitacora_vet_db(db: Session, id_usuario: int):
+	resultado = db.execute(
+		text("SELECT fn_obtener_actividad_vet(:id_usuario) AS bitacora"),
+		{"id_usuario": id_usuario},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"fecha_hora": row.get("fecha_hora"),
+			"tipo_accion": row.get("tipo_accion"),
+			"entidad_afectada": row.get("entidad_afectada"),
+			"detalles": row.get("detalles"),
+		}
+		for row in (resultado or [])
 	]
 
 
@@ -268,4 +445,26 @@ def get_documentos_vet(db: Session, id_usuario: int):
 			"fecha_revision": row.fecha_revision,
 		}
 		for row in rows
+	]
+
+
+def get_documentos_vet_db(db: Session, id_usuario: int):
+	resultado = db.execute(
+		text("SELECT fn_obtener_documentos_vet(:id_usuario) AS documentos"),
+		{"id_usuario": id_usuario},
+	).scalar()
+
+	if resultado is None:
+		return []
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return [
+		{
+			"nombre_documento": row.get("nombre_documento"),
+			"enlace_documento": row.get("url_archivo"),
+			"estado_documento": row.get("estado_documento"),
+		}
+		for row in (resultado or [])
 	]

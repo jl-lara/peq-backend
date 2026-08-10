@@ -69,6 +69,100 @@ Ejemplo de respuesta:
 }
 ```
 
+### 1.1 Perfil detallado del veterinario autenticado
+
+Devuelve la información preparada para la vista principal del perfil, usando la función `fn_obtener_perfil_veterinario` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/perfil-detallado/`
+
+Estructura principal de respuesta:
+
+- `resumen`
+- `datos_personales`
+- `datos_profesionales`
+
+Campos principales por sección:
+
+- `resumen.certificaciones_realizadas`
+- `resumen.miembro_desde`
+- `datos_personales.nombre_completo`
+- `datos_personales.curp`
+- `datos_personales.email`
+- `datos_personales.telefono`
+- `datos_personales.municipio`
+- `datos_personales.estado`
+- `datos_profesionales.cedula_profesional`
+- `datos_profesionales.especialidad`
+- `datos_profesionales.universidad`
+- `datos_profesionales.fecha_registro`
+
+Ejemplo de respuesta:
+
+```json
+{
+  "resumen": {
+    "certificaciones_realizadas": 12,
+    "miembro_desde": "2026-08-08T12:30:00"
+  },
+  "datos_personales": {
+    "nombre_completo": "María Gómez López",
+    "curp": null,
+    "email": "maria@veterinaria.com",
+    "telefono": "5559876543",
+    "municipio": "Zapopan",
+    "estado": "Jalisco"
+  },
+  "datos_profesionales": {
+    "cedula_profesional": "CED-9876543",
+    "especialidad": "Bovinos y Porcinos",
+    "universidad": "UNAM",
+    "fecha_registro": "2026-08-08T12:30:00"
+  }
+}
+```
+
+### 1.2 Actualizar el perfil del veterinario autenticado desde la función de BD
+
+Actualiza los datos del perfil usando la función `fn_actualizar_perfil_veterinario` de la base de datos.
+
+- Método: `PUT`
+- Ruta: `/perfil-actualizar-db/`
+
+Campos del body:
+
+- `nombre`
+- `apellido_paterno`
+- `apellido_materno`
+- `email`
+- `telefono`
+- `ciudad`
+- `especialidad`
+
+Ejemplo de body:
+
+```json
+{
+  "nombre": "María",
+  "apellido_paterno": "Gómez",
+  "apellido_materno": "López",
+  "email": "maria@veterinaria.com",
+  "telefono": "5559876543",
+  "ciudad": "Zapopan",
+  "especialidad": "Bovinos y Porcinos"
+}
+```
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "mensaje": "Perfil de veterinario actualizado correctamente",
+  "id_usuario": 12
+}
+```
+
 ### 2. Solicitudes asignadas al veterinario
 
 Lista las solicitudes de certificación asignadas al veterinario autenticado.
@@ -88,6 +182,34 @@ Campos principales de respuesta:
 
 - `codigo_solicitud`
 - `id_solicitud`
+- `arete_animal`
+- `tipo_ganado`
+- `nombre_productor`
+- `rancho`
+- `raza`
+- `edad_anios`
+- `peso_est_kg`
+- `fecha_solicitud`
+- `estado_solicitud`
+
+### 2.1 Solicitudes asignadas al veterinario desde la función de BD
+
+Devuelve las solicitudes usando la función `fn_obtener_solicitudes_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/solicitudes-panel-db/`
+- Query params opcionales:
+  - `id_estado`
+
+Ejemplo:
+
+```http
+GET /solicitudes-panel-db/?id_estado=3
+```
+
+Campos principales de respuesta:
+
+- `codigo_solicitud`
 - `arete_animal`
 - `tipo_ganado`
 - `nombre_productor`
@@ -118,6 +240,26 @@ Campos principales de respuesta:
 - `entidad_afectada`
 - `detalles`
 
+### 3.1 Bitácora personal del veterinario desde la función de BD
+
+Devuelve la bitácora usando la función `fn_obtener_actividad_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/bitacora-db/`
+
+Ejemplo:
+
+```http
+GET /bitacora-db/
+```
+
+Campos principales de respuesta:
+
+- `fecha_hora`
+- `tipo_accion`
+- `entidad_afectada`
+- `detalles`
+
 ### 4. Documentos subidos por el veterinario
 
 Lista los documentos que el veterinario subió al sistema.
@@ -137,6 +279,65 @@ Campos principales de respuesta:
 - `enlace_documento`
 - `estado_documento`
 - `fecha_revision`
+
+### 4.1 Documentos subidos por el veterinario desde la función de BD
+
+Devuelve los documentos usando la función `fn_obtener_documentos_vet` de la base de datos.
+
+- Método: `GET`
+- Ruta: `/documentos-subidos-db/`
+
+Ejemplo:
+
+```http
+GET /documentos-subidos-db/
+```
+
+Campos principales de respuesta:
+
+- `nombre_documento`
+- `enlace_documento`
+- `estado_documento`
+
+### 5. Registrar revisión de certificación desde la función de BD
+
+Registra la certificación y actualiza la solicitud en una sola operación usando la función `fn_registrar_revision_veterinaria`.
+
+- Método: `PUT`
+- Ruta: `/revision-certificacion-db/`
+
+Campos del body:
+
+- `id_solicitud`
+- `peso_validado`
+- `caracteristicas_validadas`
+- `observaciones_medicas`
+- `dictamen`
+- `id_estado_nuevo`
+
+Ejemplo de body:
+
+```json
+{
+  "id_solicitud": 1,
+  "peso_validado": 450.5,
+  "caracteristicas_validadas": "Animal en buen estado general",
+  "observaciones_medicas": "Sin hallazgos relevantes",
+  "dictamen": "APROBADO",
+  "id_estado_nuevo": 4
+}
+```
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "mensaje": "Certificación registrada y solicitud actualizada correctamente",
+  "id_certificacion": 10,
+  "id_solicitud": 1
+}
+```
 
 ## Endpoints de gestión existentes
 

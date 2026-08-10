@@ -20,6 +20,21 @@ def leer_mi_productor(
 	return crud.get_mi_productor(db=db, id_usuario=current_user.id_usuario)
 
 
+@router.get("/traspatio/animales-productor/", response_model=List[schemas.AnimalRegistradoProductorResponse], tags=["Traspatio"])
+def leer_animales_productor(
+	skip: int = 0,
+	limit: int = 100,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_animales_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		skip=skip,
+		limit=limit,
+	)
+
+
 @router.get("/traspatio/animales/", response_model=List[schemas.AnimalResponse], tags=["Traspatio"])
 def leer_mis_animales(
 	skip: int = 0,
@@ -100,4 +115,95 @@ def leer_mis_solicitudes(
 		id_veterinario=id_veterinario,
 		fecha_solicitud_desde=fecha_solicitud_desde,
 		fecha_solicitud_hasta=fecha_solicitud_hasta,
+	)
+
+@router.get("/traspatio/actividades/", response_model=List[schemas.ActividadProductorResponse], tags=["Traspatio"])
+def leer_mis_actividades(
+	skip: int = 0,
+	limit: int = 100,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_mis_actividades(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		skip=skip,
+		limit=limit,
+	)
+
+@router.get("/traspatio/perfil/", response_model=schemas.ProductorPerfilResponse, tags=["Traspatio"])
+def leer_perfil_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_perfil_productor(db=db, id_usuario=current_user.id_usuario)
+
+
+@router.get("/traspatio/documentos-productor/", response_model=List[schemas.DocumentoProductorResponse], tags=["Traspatio"])
+def leer_documentos_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_documentos_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+	)
+
+
+@router.get("/traspatio/dashboard/", response_model=schemas.DashboardProductorResponse, tags=["Traspatio"])
+def leer_dashboard_productor(
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_dashboard_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+	)
+
+
+@router.get("/traspatio/ficha-tecnica/{arete_id}", response_model=schemas.FichaTecnicaAnimalResponse, tags=["Traspatio"])
+def leer_ficha_tecnica_animal(
+	arete_id: str,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.get_ficha_tecnica_animal(db=db, arete_id=arete_id)
+
+
+@router.put("/traspatio/perfil/cambiar-contrasena/", tags=["Traspatio"])
+def actualizar_contrasena_productor(
+	payload: schemas.CambiarContrasenaRequest,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	# current_user.id_usuario viene directamente de auth.get_current_user
+	return crud.cambiar_contrasena_usuario(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		contrasena_actual=payload.contrasena_actual,
+		contrasena_nueva=payload.contrasena_nueva,
+	)
+
+@router.put("/traspatio/perfil/editar/", tags=["Traspatio"])
+def actualizar_perfil_productor(
+	payload: schemas.EditarPerfilProductorRequest,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.editar_perfil_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		nombre=payload.nombre,
+		apellido_paterno=payload.apellido_paterno,
+		apellido_materno=payload.apellido_materno,
+		email=payload.email,
+		telefono=payload.telefono,
+		ciudad=payload.ciudad,
+		nombre_rancho=payload.nombre_rancho,
+		direccion=payload.direccion,
+		capacidad_animales=payload.capacidad_animales,
+		superficie_hectareas=payload.superficie_hectareas,
+		documentos=[doc.model_dump() for doc in payload.documentos]
+		if payload.documentos
+		else [],
 	)
