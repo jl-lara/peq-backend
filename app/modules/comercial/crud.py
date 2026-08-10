@@ -32,39 +32,8 @@ def obtener_panel_productor(db: Session, id_usuario: int):
 			detail=f"Error al consultar el panel del productor: {str(err)}",
 		)
 
-def obtener_catalogo_animales(
-	db: Session,
-	id_categoria: Optional[int] = None,
-	id_estado: Optional[int] = None,
-):
-	query = text(
-		"SELECT fn_obtener_catalogo_animales(:p_id_categoria, :p_id_estado);"
-	)
-	try:
-		resultado = db.execute(
-			query, {"p_id_categoria": id_categoria, "p_id_estado": id_estado}
-		).scalar()
-		return resultado or []
-	except Exception as err:
-		print(f"Error al ejecutar fn_obtener_catalogo_animales: {str(err)}")
-		raise HTTPException(
-			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-			detail="Error al obtener el catálogo de animales.",
-		)
-
-
-def editar_animal_productor(
-	db: Session,
-	id_animal: int,
-	id_usuario: int,
-	sexo: str,
-	edad: float,
-	peso_kg: float,
-	condicion_general: str,
-	proposito_produccion: str,
-	documentos: Optional[list] = None,
-):
-	# 1. Obtener id_productor
+def obtener_animales_productor(db: Session, id_usuario: int):
+	# 1. Buscar el id_productor asociado al id_usuario
 	query_prod = text(
 		"SELECT id_productor FROM productores WHERE id_usuario = :id_usuario;"
 	)
@@ -73,47 +42,22 @@ def editar_animal_productor(
 	if not id_productor:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail="Productor no encontrado.",
+			detail="No se encontró un rancho/productor registrado para este usuario.",
 		)
 
-	# 2. Invocación usando CAST para evitar conflicto de ::json en SQLAlchemy
-	query_edit = text(
-		"""
-        SELECT fn_editar_animal(
-            :p_id_animal,
-            :p_id_productor,
-            :p_sexo,
-            :p_edad,
-            :p_peso_kg,
-            :p_condicion_general,
-            :p_proposito_produccion,
-            CAST(:p_documentos AS JSON)
-        );
-    """
+	# 2. Ejecutar la función fn_obtener_animales_productor
+	query_animales = text(
+		"SELECT fn_obtener_animales_productor(:p_id_productor);"
 	)
-
-	documentos_json = json.dumps(documentos) if documentos else json.dumps([])
 
 	try:
 		resultado = db.execute(
-			query_edit,
-			{
-				"p_id_animal": id_animal,
-				"p_id_productor": id_productor,
-				"p_sexo": sexo,
-				"p_edad": edad,
-				"p_peso_kg": peso_kg,
-				"p_condicion_general": condicion_general,
-				"p_proposito_produccion": proposito_produccion,
-				"p_documentos": documentos_json,
-			},
+			query_animales, {"p_id_productor": id_productor}
 		).scalar()
-		db.commit()
-		return resultado
+		return resultado or []
 	except Exception as err:
-		db.rollback()
-		print(f"Error al ejecutar fn_editar_animal: {str(err)}")
+		print(f"Error al ejecutar fn_obtener_animales_productor: {str(err)}")
 		raise HTTPException(
-			status_code=status.HTTP_400_BAD_REQUEST,
-			detail=f"Error al editar animal: {str(err)}",
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"Error al obtener los animales del productor: {str(err)}",
 		)
