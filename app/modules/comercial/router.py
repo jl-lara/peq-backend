@@ -22,7 +22,7 @@ def obtener_dashboard_comercial(
 ):
 	return crud.obtener_panel_productor(db=db, id_usuario=current_user.id_usuario)
 
-@router.get("/comercial/productor/", response_model=schemas.ProductorResponse, tags=["Traspatio"])
+@router.get("/comercial/productor/", response_model=schemas.ProductorResponse, tags=["Comercial"])
 def leer_mi_productor(
 	db: Session = Depends(get_db),
 	current_user=Depends(auth.get_current_user),
@@ -30,7 +30,7 @@ def leer_mi_productor(
 	return crud.get_mi_productor(db=db, id_usuario=current_user.id_usuario)
 
 
-@router.get("/comercial/animales-productor/", response_model=List[schemas.AnimalRegistradoProductorResponse], tags=["Traspatio"])
+@router.get("/comercial/animales-productor/", response_model=List[schemas.AnimalRegistradoProductorResponse], tags=["Comercial"])
 def leer_animales_productor(
 	skip: int = 0,
 	limit: int = 100,
@@ -45,7 +45,7 @@ def leer_animales_productor(
 	)
 
 
-@router.get("/comercial/animales/", response_model=List[schemas.AnimalResponse], tags=["Traspatio"])
+@router.get("/comercial/animales/", response_model=List[schemas.AnimalResponse], tags=["Comercial"])
 def leer_mis_animales(
 	skip: int = 0,
 	limit: int = 100,
