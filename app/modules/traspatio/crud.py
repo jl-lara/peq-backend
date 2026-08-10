@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import bcrypt
-
+import json
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -410,4 +410,69 @@ def cambiar_contrasena_usuario(
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="La base de datos rechazó la actualización de la contraseña.",
+		)
+	
+def editar_perfil_productor(
+	db: Session,
+	id_usuario: int,
+	nombre: str,
+	apellido_paterno: str,
+	apellido_materno: str | None,
+	email: str,
+	telefono: str,
+	ciudad: str,
+	nombre_rancho: str,
+	direccion: str,
+	capacidad_animales: int,
+	superficie_hectareas: float,
+	documentos: list | None = None,
+):
+	query = text(
+		"""
+        SELECT fn_editar_perfil_productor(
+            :p_id_usuario,
+            :p_nombre,
+            :p_apellido_paterno,
+            :p_apellido_materno,
+            :p_email,
+            :p_telefono,
+            :p_ciudad,
+            :p_nombre_rancho,
+            :p_direccion,
+            :p_capacidad_animales,
+            :p_superficie_hectareas,
+            :p_documentos::json
+        );
+    """
+	)
+
+	# Convertir lista de documentos a JSON string
+	documentos_json = json.dumps(documentos) if documentos else None
+
+	try:
+		resultado = db.execute(
+			query,
+			{
+				"p_id_usuario": id_usuario,
+				"p_nombre": nombre,
+				"p_apellido_paterno": apellido_paterno,
+				"p_apellido_materno": apellido_materno or "",
+				"p_email": email,
+				"p_telefono": telefono,
+				"p_ciudad": ciudad,
+				"p_nombre_rancho": nombre_rancho,
+				"p_direccion": direccion,
+				"p_capacidad_animales": capacidad_animales,
+				"p_superficie_hectareas": superficie_hectareas,
+				"p_documentos": documentos_json,
+			},
+		).scalar()
+
+		db.commit()
+		return resultado
+	except Exception as err:
+		db.rollback()
+		raise HTTPException(
+			status_code=status.HTTP_400_BAD_REQUEST,
+			detail=f"Error al actualizar el perfil del productor: {str(err)}",
 		)

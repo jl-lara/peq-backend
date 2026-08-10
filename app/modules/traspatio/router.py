@@ -179,3 +179,27 @@ def actualizar_contrasena_productor(
 		contrasena_actual=payload.contrasena_actual,
 		contrasena_nueva=payload.contrasena_nueva,
 	)
+
+@router.put("/traspatio/perfil/editar/", tags=["Traspatio"])
+def actualizar_perfil_productor(
+	payload: schemas.EditarPerfilProductorRequest,
+	db: Session = Depends(get_db),
+	current_user=Depends(auth.get_current_user),
+):
+	return crud.editar_perfil_productor(
+		db=db,
+		id_usuario=current_user.id_usuario,
+		nombre=payload.nombre,
+		apellido_paterno=payload.apellido_paterno,
+		apellido_materno=payload.apellido_materno,
+		email=payload.email,
+		telefono=payload.telefono,
+		ciudad=payload.ciudad,
+		nombre_rancho=payload.nombre_rancho,
+		direccion=payload.direccion,
+		capacidad_animales=payload.capacidad_animales,
+		superficie_hectareas=payload.superficie_hectareas,
+		documentos=[doc.model_dump() for doc in payload.documentos]
+		if payload.documentos
+		else [],
+	)

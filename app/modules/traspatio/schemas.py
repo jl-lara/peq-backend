@@ -113,6 +113,25 @@ class CambiarContrasenaRequest(BaseModel):
 	contrasena_actual: str = Field(..., min_length=1)
 	contrasena_nueva: str = Field(..., min_length=6)
 
+class DocumentoAdjuntoProductor(BaseModel):
+	id_tipo_doc: int
+	url_archivo: str
+	notas: str | None = None
+
+
+class EditarPerfilProductorRequest(BaseModel):
+	nombre: str = Field(..., min_length=1)
+	apellido_paterno: str = Field(..., min_length=1)
+	apellido_materno: str | None = None
+	email: str = Field(..., min_length=3)
+	telefono: str = Field(..., min_length=7)
+	ciudad: str = Field(..., min_length=1)
+	nombre_rancho: str = Field(..., min_length=1)
+	direccion: str = Field(..., min_length=1)
+	capacidad_animales: int = Field(..., ge=0)
+	superficie_hectareas: float = Field(..., ge=0.0)
+	documentos: list[DocumentoAdjuntoProductor] | None = []
+
 __all__ = [
 	"AnimalResponse",
 	"AnimalRegistradoProductorResponse",
@@ -128,4 +147,6 @@ __all__ = [
 	"FichaTecnicaAnimalResponse",
 	"EnfermedadStatus",
 	"CambiarContrasenaRequest",
+	"DocumentoAdjuntoProductor",
+	"EditarPerfilProductorRequest",
 ]
