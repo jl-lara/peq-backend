@@ -18,6 +18,7 @@ class Estado(Base):
     animales: Mapped[List["Animal"]] = relationship(back_populates="estado")
     documentos: Mapped[List["Documento"]] = relationship(back_populates="estado")
     solicitudes: Mapped[List["SolicitudCertificacion"]] = relationship(back_populates="estado")
+    solicitudes_cambio: Mapped[List["SolicitudCambio"]] = relationship(back_populates="estado")
 
 class Rol(Base):
     __tablename__ = "roles"
@@ -152,6 +153,18 @@ class Usuario(Base):
     documentos_validados: Mapped[List["Documento"]] = relationship(foreign_keys="[Documento.id_validador]", back_populates="validador")
     
     solicitudes_veterinario: Mapped[List["SolicitudCertificacion"]] = relationship(back_populates="veterinario")
+    solicitudes_cambio_solicitadas: Mapped[List["SolicitudCambio"]] = relationship(
+        foreign_keys="[SolicitudCambio.id_usuario_solicita]",
+        back_populates="usuario_solicita",
+    )
+    solicitudes_cambio_objetivo: Mapped[List["SolicitudCambio"]] = relationship(
+        foreign_keys="[SolicitudCambio.id_usuario_objetivo]",
+        back_populates="usuario_objetivo",
+    )
+    solicitudes_cambio_revisadas: Mapped[List["SolicitudCambio"]] = relationship(
+        foreign_keys="[SolicitudCambio.id_revisor]",
+        back_populates="revisor",
+    )
     bitacoras: Mapped[List["Bitacora"]] = relationship(back_populates="usuario")
 
 class Productor(Base):
@@ -244,6 +257,35 @@ class SolicitudCertificacion(Base):
     animal: Mapped["Animal"] = relationship(back_populates="solicitudes")
     veterinario: Mapped[Optional["Usuario"]] = relationship(back_populates="solicitudes_veterinario")
     certificacion: Mapped[Optional["Certificacion"]] = relationship(back_populates="solicitud", uselist=False)
+
+
+class SolicitudCambio(Base):
+    __tablename__ = "solicitudes_cambio"
+    id_solicitud_cambio: Mapped[int] = mapped_column(primary_key=True)
+    id_usuario_solicita: Mapped[int] = mapped_column(ForeignKey("usuarios.id_usuario"))
+    id_usuario_objetivo: Mapped[Optional[int]] = mapped_column(ForeignKey("usuarios.id_usuario"))
+    campo_afectado: Mapped[str] = mapped_column(String(100), nullable=False)
+    valor_anterior: Mapped[Optional[str]] = mapped_column(Text)
+    valor_nuevo: Mapped[Optional[str]] = mapped_column(Text)
+    motivo: Mapped[Optional[str]] = mapped_column(Text)
+    id_estado: Mapped[int] = mapped_column(ForeignKey("estados.id_estado"))
+    fecha_solicitud: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    fecha_revision: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    id_revisor: Mapped[Optional[int]] = mapped_column(ForeignKey("usuarios.id_usuario"))
+
+    estado: Mapped["Estado"] = relationship(back_populates="solicitudes_cambio")
+    usuario_solicita: Mapped["Usuario"] = relationship(
+        foreign_keys=[id_usuario_solicita],
+        back_populates="solicitudes_cambio_solicitadas",
+    )
+    usuario_objetivo: Mapped[Optional["Usuario"]] = relationship(
+        foreign_keys=[id_usuario_objetivo],
+        back_populates="solicitudes_cambio_objetivo",
+    )
+    revisor: Mapped[Optional["Usuario"]] = relationship(
+        foreign_keys=[id_revisor],
+        back_populates="solicitudes_cambio_revisadas",
+    )
 
 class Certificacion(Base):
     __tablename__ = "certificaciones"

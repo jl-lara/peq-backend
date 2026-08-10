@@ -216,6 +216,33 @@ class SolicitudCertificacionResponse(SolicitudCertificacionBase):
         from_attributes = True
 
 # ==========================================
+# ESQUEMAS PARA 'SOLICITUDES DE CAMBIO'
+# ==========================================
+
+class SolicitudCambioBase(BaseModel):
+    id_usuario_solicita: int
+    id_usuario_objetivo: Optional[int] = None
+    campo_afectado: str
+    valor_anterior: Optional[str] = None
+    valor_nuevo: Optional[str] = None
+    motivo: Optional[str] = None
+    id_estado: int
+    fecha_revision: Optional[datetime] = None
+    id_revisor: Optional[int] = None
+
+
+class SolicitudCambioCreate(SolicitudCambioBase):
+    pass
+
+
+class SolicitudCambioResponse(SolicitudCambioBase):
+    id_solicitud_cambio: int
+    fecha_solicitud: datetime
+
+    class Config:
+        from_attributes = True
+
+# ==========================================
 # ESQUEMAS PARA 'CERTIFICACIONES'
 # ==========================================
 class CertificacionBase(BaseModel):

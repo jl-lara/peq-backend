@@ -146,6 +146,48 @@ def create_documento(db: Session, documento):
 	return legacy_crud.create_documento(db=db, documento=documento)
 
 
+def create_solicitud_cambio(db: Session, solicitud_cambio):
+	return legacy_crud.create_solicitud_cambio(db=db, solicitud_cambio=solicitud_cambio)
+
+
+def get_solicitudes_cambio(
+	db: Session,
+	skip: int = 0,
+	limit: int = 100,
+	id_usuario_solicita: int | None = None,
+	id_usuario_objetivo: int | None = None,
+	id_revisor: int | None = None,
+	id_estado: int | None = None,
+	campo_afectado: str | None = None,
+	fecha_solicitud_desde: datetime | None = None,
+	fecha_solicitud_hasta: datetime | None = None,
+):
+	return legacy_crud.get_solicitudes_cambio(
+		db=db,
+		skip=skip,
+		limit=limit,
+		id_usuario_solicita=id_usuario_solicita,
+		id_usuario_objetivo=id_usuario_objetivo,
+		id_revisor=id_revisor,
+		id_estado=id_estado,
+		campo_afectado=campo_afectado,
+		fecha_solicitud_desde=fecha_solicitud_desde,
+		fecha_solicitud_hasta=fecha_solicitud_hasta,
+	)
+
+
+def update_solicitud_cambio(db: Session, id_solicitud_cambio: int, solicitud_cambio):
+	return legacy_crud.update_solicitud_cambio(
+		db=db,
+		id_solicitud_cambio=id_solicitud_cambio,
+		solicitud_cambio=solicitud_cambio,
+	)
+
+
+def delete_solicitud_cambio(db: Session, id_solicitud_cambio: int):
+	return legacy_crud.delete_solicitud_cambio(db=db, id_solicitud_cambio=id_solicitud_cambio)
+
+
 def get_documentos(
 	db: Session,
 	skip: int = 0,

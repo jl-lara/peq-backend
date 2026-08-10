@@ -187,6 +187,52 @@ def leer_documentos_revision(
 	)
 
 
+@router.post("/solicitudes-cambio/", response_model=schemas.SolicitudCambioAdminResponse, tags=["Panel Administrador"])
+def crear_solicitud_cambio(solicitud_cambio: schemas.SolicitudCambioCreate, db: Session = Depends(get_db)):
+	return crud.create_solicitud_cambio(db=db, solicitud_cambio=solicitud_cambio)
+
+
+@router.get("/solicitudes-cambio/", response_model=List[schemas.SolicitudCambioAdminResponse], tags=["Panel Administrador"])
+def leer_solicitudes_cambio(
+	skip: int = 0,
+	limit: int = 100,
+	id_usuario_solicita: int | None = None,
+	id_usuario_objetivo: int | None = None,
+	id_revisor: int | None = None,
+	id_estado: int | None = None,
+	campo_afectado: str | None = None,
+	fecha_solicitud_desde: datetime | None = None,
+	fecha_solicitud_hasta: datetime | None = None,
+	db: Session = Depends(get_db),
+):
+	return crud.get_solicitudes_cambio(
+		db=db,
+		skip=skip,
+		limit=limit,
+		id_usuario_solicita=id_usuario_solicita,
+		id_usuario_objetivo=id_usuario_objetivo,
+		id_revisor=id_revisor,
+		id_estado=id_estado,
+		campo_afectado=campo_afectado,
+		fecha_solicitud_desde=fecha_solicitud_desde,
+		fecha_solicitud_hasta=fecha_solicitud_hasta,
+	)
+
+
+@router.put("/solicitudes-cambio/{id_solicitud_cambio}", response_model=schemas.SolicitudCambioAdminResponse, tags=["Panel Administrador"])
+def actualizar_solicitud_cambio(
+	id_solicitud_cambio: int,
+	solicitud_cambio: schemas.SolicitudCambioCreate,
+	db: Session = Depends(get_db),
+):
+	return crud.update_solicitud_cambio(db=db, id_solicitud_cambio=id_solicitud_cambio, solicitud_cambio=solicitud_cambio)
+
+
+@router.delete("/solicitudes-cambio/{id_solicitud_cambio}", tags=["Panel Administrador"])
+def eliminar_solicitud_cambio(id_solicitud_cambio: int, db: Session = Depends(get_db)):
+	return crud.delete_solicitud_cambio(db=db, id_solicitud_cambio=id_solicitud_cambio)
+
+
 @router.get("/perfil-administrador/", response_model=schemas.PerfilAdministradorResponse, tags=["Panel Administrador"])
 def leer_perfil_administrador(current_user=Depends(require_admin_user), db: Session = Depends(get_db)):
 	perfil = crud.get_perfil_administrador(db=db, usuario_actual=current_user)

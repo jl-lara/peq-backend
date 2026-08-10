@@ -307,6 +307,95 @@ def create_solicitud(db: Session, solicitud: schemas.SolicitudCertificacionCreat
             detail="Error al crear solicitud: Verifica que el animal, estado y veterinario existan."
         )
 
+
+# ==========================================
+# CRUD PARA 'SOLICITUDES DE CAMBIO'
+# ==========================================
+def get_solicitudes_cambio(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    id_usuario_solicita: Optional[int] = None,
+    id_usuario_objetivo: Optional[int] = None,
+    id_revisor: Optional[int] = None,
+    id_estado: Optional[int] = None,
+    campo_afectado: Optional[str] = None,
+    fecha_solicitud_desde: Optional[datetime] = None,
+    fecha_solicitud_hasta: Optional[datetime] = None,
+):
+    query = db.query(models.SolicitudCambio)
+    if id_usuario_solicita is not None:
+        query = query.filter(models.SolicitudCambio.id_usuario_solicita == id_usuario_solicita)
+    if id_usuario_objetivo is not None:
+        query = query.filter(models.SolicitudCambio.id_usuario_objetivo == id_usuario_objetivo)
+    if id_revisor is not None:
+        query = query.filter(models.SolicitudCambio.id_revisor == id_revisor)
+    if id_estado is not None:
+        query = query.filter(models.SolicitudCambio.id_estado == id_estado)
+    if campo_afectado is not None:
+        query = query.filter(models.SolicitudCambio.campo_afectado == campo_afectado.strip())
+    if fecha_solicitud_desde is not None:
+        query = query.filter(models.SolicitudCambio.fecha_solicitud >= fecha_solicitud_desde)
+    if fecha_solicitud_hasta is not None:
+        query = query.filter(models.SolicitudCambio.fecha_solicitud <= fecha_solicitud_hasta)
+    return query.offset(skip).limit(limit).all()
+
+
+def create_solicitud_cambio(db: Session, solicitud_cambio: schemas.SolicitudCambioCreate):
+    _validate_estado_for_flow(db, solicitud_cambio.id_estado, "solicitud")
+    _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_usuario_solicita, "Usuario")
+    if solicitud_cambio.id_usuario_objetivo is not None:
+        _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_usuario_objetivo, "Usuario")
+    if solicitud_cambio.id_revisor is not None:
+        _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_revisor, "Usuario")
+
+    db_solicitud = models.SolicitudCambio(**solicitud_cambio.model_dump())
+    db.add(db_solicitud)
+    try:
+        db.commit()
+        db.refresh(db_solicitud)
+        return db_solicitud
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Error al crear solicitud de cambio: Verifica usuarios, estado y consistencia de datos.",
+        )
+
+
+def update_solicitud_cambio(db: Session, id_solicitud_cambio: int, solicitud_cambio: schemas.SolicitudCambioCreate):
+    _validate_estado_for_flow(db, solicitud_cambio.id_estado, "solicitud")
+    _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_usuario_solicita, "Usuario")
+    if solicitud_cambio.id_usuario_objetivo is not None:
+        _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_usuario_objetivo, "Usuario")
+    if solicitud_cambio.id_revisor is not None:
+        _get_entity_or_404(db, models.Usuario, "id_usuario", solicitud_cambio.id_revisor, "Usuario")
+
+    db_solicitud = _get_entity_or_404(
+        db, models.SolicitudCambio, "id_solicitud_cambio", id_solicitud_cambio, "Solicitud de cambio"
+    )
+    for field, value in solicitud_cambio.model_dump().items():
+        setattr(db_solicitud, field, value)
+
+    try:
+        db.commit()
+        db.refresh(db_solicitud)
+        return db_solicitud
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Error al actualizar solicitud de cambio: verifica usuarios, estado y consistencia del flujo.",
+        )
+
+
+def delete_solicitud_cambio(db: Session, id_solicitud_cambio: int):
+    db_solicitud = _get_entity_or_404(
+        db, models.SolicitudCambio, "id_solicitud_cambio", id_solicitud_cambio, "Solicitud de cambio"
+    )
+    _delete_entity(db, db_solicitud, "No se puede eliminar la solicitud de cambio porque está en uso.")
+    return {"mensaje": "Solicitud de cambio eliminada correctamente."}
+
 def get_certificaciones(
     db: Session,
     skip: int = 0,

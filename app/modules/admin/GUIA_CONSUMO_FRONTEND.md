@@ -160,6 +160,59 @@ Campos principales de respuesta:
 - `notas_administrador`
 - `fecha_revision`
 
+### 4.1 Solicitudes de cambio
+
+Este recurso permite crear, listar, editar y cancelar solicitudes de cambio.
+
+- Método: `POST`
+- Ruta: `/solicitudes-cambio/`
+- Método: `GET`
+- Ruta: `/solicitudes-cambio/`
+- Método: `PUT`
+- Ruta: `/solicitudes-cambio/{id_solicitud_cambio}`
+- Método: `DELETE`
+- Ruta: `/solicitudes-cambio/{id_solicitud_cambio}`
+
+Campos del body:
+
+- `id_usuario_solicita`
+- `id_usuario_objetivo`
+- `campo_afectado`
+- `valor_anterior`
+- `valor_nuevo`
+- `motivo`
+- `id_estado`
+- `fecha_revision`
+- `id_revisor`
+
+Filtros opcionales en `GET`:
+
+- `skip`
+- `limit`
+- `id_usuario_solicita`
+- `id_usuario_objetivo`
+- `id_revisor`
+- `id_estado`
+- `campo_afectado`
+- `fecha_solicitud_desde`
+- `fecha_solicitud_hasta`
+
+Ejemplo de body:
+
+```json
+{
+  "id_usuario_solicita": 12,
+  "id_usuario_objetivo": 44,
+  "campo_afectado": "estado_usuario",
+  "valor_anterior": "Activo",
+  "valor_nuevo": "Inactivo",
+  "motivo": "Solicitud de cambio desde el panel",
+  "id_estado": 3,
+  "fecha_revision": null,
+  "id_revisor": null
+}
+```
+
 ### 5. Perfil del administrador autenticado
 
 Devuelve la información del usuario logueado.
@@ -196,6 +249,35 @@ Estos catálogos ya están expuestos en el panel admin para que el frontend pued
 Filtro disponible en `GET /estados/`:
 
 - `nombre`
+
+Uso recomendado en frontend:
+
+- Cargar el catálogo desde `GET /admin/estados/`.
+- Usar `id_estado` en formularios, filtros y botones de acción.
+- Evitar comparar por texto fijo, porque el backend valida por identificador y el nombre puede cambiar.
+
+Ejemplo de consumo:
+
+```js
+const estados = await apiGet('/admin/estados/', token);
+// estados.map((estado) => ({ label: estado.nombre, value: estado.id_estado }))
+```
+
+Prompt sugerido para la siguiente iteración del frontend:
+
+- "Carga el catálogo de estados desde `GET /admin/estados/` y usa `id_estado` como valor real en selects, botones y filtros. No uses textos hardcodeados; solo muestra `nombre` en pantalla."
+
+Estados sembrados actualmente en el backend:
+
+- `Activo`
+- `Inactivo`
+- `Pendiente de Revisión`
+- `En Revisión`
+- `Aprobado`
+- `Rechazado`
+- `Bloqueado`
+- `Registrado`
+- `Certificado`
 
 ### Roles
 
