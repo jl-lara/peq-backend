@@ -1,77 +1,32 @@
-"""Adaptador CRUD del modulo comercial sobre la capa existente."""
-
+from fastapi import HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app import crud as legacy_crud
 
-
-def create_productor(db: Session, productor):
-	return legacy_crud.create_productor(db=db, productor=productor)
-
-
-def get_productores(
-	db: Session,
-	skip: int = 0,
-	limit: int = 100,
-	id_usuario: int | None = None,
-	nombre: str | None = None,
-):
-	return legacy_crud.get_productores(
-		db=db,
-		skip=skip,
-		limit=limit,
-		id_usuario=id_usuario,
-		nombre=nombre,
+def obtener_panel_productor(db: Session, id_usuario: int):
+	# 1. Obtener el id_productor asociado al id_usuario autenticado
+	query_productor = text(
+		"SELECT id_productor FROM productores WHERE id_usuario = :id_usuario;"
 	)
+	id_productor = db.execute(query_productor, {"id_usuario": id_usuario}).scalar()
 
+	if not id_productor:
+		raise HTTPException(
+			status_code=status.HTTP_404_NOT_FOUND,
+			detail="No se encontró un perfil de productor asociado a este usuario.",
+		)
 
-def update_productor(db: Session, id_productor: int, productor):
-	return legacy_crud.update_productor(db=db, id_productor=id_productor, productor=productor)
+	# 2. Ejecutar la función almacenada fn_obtener_panel_productor
+	query_panel = text("SELECT fn_obtener_panel_productor(:p_id_productor);")
 
-
-def delete_productor(db: Session, id_productor: int):
-	return legacy_crud.delete_productor(db=db, id_productor=id_productor)
-
-
-def create_animal(db: Session, animal):
-	return legacy_crud.create_animal(db=db, animal=animal)
-
-
-def get_animales(
-	db: Session,
-	skip: int = 0,
-	limit: int = 100,
-	id_productor: int | None = None,
-	id_raza: int | None = None,
-	id_estado: int | None = None,
-	sexo: str | None = None,
-	edad_min: int | None = None,
-	edad_max: int | None = None,
-	peso_min: float | None = None,
-	peso_max: float | None = None,
-	arete_id: str | None = None,
-	proposito_produccion: str | None = None,
-):
-	return legacy_crud.get_animales(
-		db=db,
-		skip=skip,
-		limit=limit,
-		id_productor=id_productor,
-		id_raza=id_raza,
-		id_estado=id_estado,
-		sexo=sexo,
-		edad_min=edad_min,
-		edad_max=edad_max,
-		peso_min=peso_min,
-		peso_max=peso_max,
-		arete_id=arete_id,
-		proposito_produccion=proposito_produccion,
-	)
-
-
-def update_animal(db: Session, id_animal: int, animal):
-	return legacy_crud.update_animal(db=db, id_animal=id_animal, animal=animal)
-
-
-def delete_animal(db: Session, id_animal: int):
-	return legacy_crud.delete_animal(db=db, id_animal=id_animal)
+	try:
+		resultado = db.execute(
+			query_panel, {"p_id_productor": id_productor}
+		).scalar()
+		return resultado
+	except Exception as err:
+		print(f"Error al ejecutar fn_obtener_panel_productor: {str(err)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"Error al consultar el panel del productor: {str(err)}",
+		)
