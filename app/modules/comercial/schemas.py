@@ -16,38 +16,20 @@ class PanelProductorResponse(BaseModel):
 	resumen_general: ResumenGeneralPanel
 	desglose_categorias: List[DesgloseCategoriaPanel]
 
-class DocumentoAnimalRequest(BaseModel):
-	id_tipo_doc: int
-	url_archivo: str
-	notas: Optional[str] = None
-
-
-class EditarAnimalRequest(BaseModel):
-	sexo: str = Field(..., min_length=1)
-	edad: float = Field(..., ge=0)
-	peso_kg: float = Field(..., ge=0)
-	condicion_general: str = Field(..., min_length=1)
-	proposito_produccion: str = Field(..., min_length=1)
-	documentos: Optional[List[DocumentoAnimalRequest]] = []
-
-
-class AnimalCatalogoResponse(BaseModel):
-	no_identificacion: str
-	raza_animal: str
-	genero: str
-	edad_anios: float
+class AnimalRegistradoProductorResponse(BaseModel):
+	id_animal: int
+	arete_id: str | None = None
+	tipo_animal: str
+	raza: str
+	edad_anios: int
 	peso_kg: float
-	condicion: Optional[str] = None
-	precio_venta: Optional[float] = None
-	nombre_rancho: Optional[str] = None
-	tipo_rancho: Optional[str] = None
-	certificado_por: Optional[str] = None
+	estado_certificacion: str
+	precio_estimado: float
+	fecha_registro: datetime
 
 __all__ = [
 	"ResumenGeneralPanel",
 	"DesgloseCategoriaPanel",
 	"PanelProductorResponse",
-	"DocumentoAnimalRequest",
-	"EditarAnimalRequest",
-	"AnimalCatalogoResponse",
+	"AnimalRegistradoProductorResponse",
 ]
