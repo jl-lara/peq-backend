@@ -210,6 +210,86 @@ def get_perfil_veterinario_detallado(db: Session, id_usuario: int):
 	}
 
 
+def update_perfil_veterinario_db(db: Session, id_usuario: int, perfil: dict):
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_actualizar_perfil_veterinario(
+					:p_id_usuario,
+					:p_nombre,
+					:p_apellido_paterno,
+					:p_apellido_materno,
+					:p_email,
+					:p_telefono,
+					:p_ciudad,
+					:p_especialidad
+				) AS resultado
+				"""
+			),
+			{
+				"p_id_usuario": id_usuario,
+				"p_nombre": perfil.get("nombre"),
+				"p_apellido_paterno": perfil.get("apellido_paterno"),
+				"p_apellido_materno": perfil.get("apellido_materno"),
+				"p_email": perfil.get("email"),
+				"p_telefono": perfil.get("telefono"),
+				"p_ciudad": perfil.get("ciudad"),
+				"p_especialidad": perfil.get("especialidad"),
+			},
+		).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
+
+
+def registrar_revision_veterinaria_db(db: Session, revision: dict):
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_registrar_revision_veterinaria(
+					:p_id_solicitud,
+					:p_peso_validado,
+					:p_caracteristicas_validadas,
+					:p_observaciones_medicas,
+					:p_dictamen,
+					:p_id_estado_nuevo
+				) AS resultado
+				"""
+			),
+			{
+				"p_id_solicitud": revision.get("id_solicitud"),
+				"p_peso_validado": revision.get("peso_validado"),
+				"p_caracteristicas_validadas": revision.get("caracteristicas_validadas"),
+				"p_observaciones_medicas": revision.get("observaciones_medicas"),
+				"p_dictamen": revision.get("dictamen"),
+				"p_id_estado_nuevo": revision.get("id_estado_nuevo"),
+			},
+		).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
+
+
 def get_solicitudes_panel_vet(
 	db: Session,
 	id_veterinario: int,

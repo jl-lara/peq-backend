@@ -55,6 +55,38 @@ class PerfilVeterinarioDetalladoResponse(BaseModel):
 	datos_profesionales: PerfilVeterinarioDatosProfesionalesResponse
 
 
+class PerfilVeterinarioActualizarDBRequest(BaseModel):
+	nombre: str
+	apellido_paterno: str
+	apellido_materno: Optional[str] = None
+	email: str
+	telefono: Optional[str] = None
+	ciudad: Optional[str] = None
+	especialidad: Optional[str] = None
+
+
+class PerfilVeterinarioActualizarDBResponse(BaseModel):
+	status: str
+	mensaje: str
+	id_usuario: int
+
+
+class RevisionCertificacionVeterinariaDBRequest(BaseModel):
+	id_solicitud: int
+	peso_validado: float
+	caracteristicas_validadas: str
+	observaciones_medicas: Optional[str] = None
+	dictamen: str
+	id_estado_nuevo: int
+
+
+class RevisionCertificacionVeterinariaDBResponse(BaseModel):
+	status: str
+	mensaje: str
+	id_certificacion: int
+	id_solicitud: int
+
+
 class SolicitudPanelVeterinarioResponse(BaseModel):
 	codigo_solicitud: str
 	id_solicitud: int
@@ -120,6 +152,10 @@ __all__ = [
 	"PerfilVeterinarioDatosPersonalesResponse",
 	"PerfilVeterinarioDatosProfesionalesResponse",
 	"PerfilVeterinarioDetalladoResponse",
+	"PerfilVeterinarioActualizarDBRequest",
+	"PerfilVeterinarioActualizarDBResponse",
+	"RevisionCertificacionVeterinariaDBRequest",
+	"RevisionCertificacionVeterinariaDBResponse",
 	"PerfilVeterinarioResumenResponse",
 	"DocumentoVeterinarioResponse",
 	"DocumentoVeterinarioDBResponse",

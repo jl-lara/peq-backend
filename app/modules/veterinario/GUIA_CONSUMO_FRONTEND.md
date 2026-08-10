@@ -122,6 +122,47 @@ Ejemplo de respuesta:
 }
 ```
 
+### 1.2 Actualizar el perfil del veterinario autenticado desde la función de BD
+
+Actualiza los datos del perfil usando la función `fn_actualizar_perfil_veterinario` de la base de datos.
+
+- Método: `PUT`
+- Ruta: `/perfil-actualizar-db/`
+
+Campos del body:
+
+- `nombre`
+- `apellido_paterno`
+- `apellido_materno`
+- `email`
+- `telefono`
+- `ciudad`
+- `especialidad`
+
+Ejemplo de body:
+
+```json
+{
+  "nombre": "María",
+  "apellido_paterno": "Gómez",
+  "apellido_materno": "López",
+  "email": "maria@veterinaria.com",
+  "telefono": "5559876543",
+  "ciudad": "Zapopan",
+  "especialidad": "Bovinos y Porcinos"
+}
+```
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "mensaje": "Perfil de veterinario actualizado correctamente",
+  "id_usuario": 12
+}
+```
+
 ### 2. Solicitudes asignadas al veterinario
 
 Lista las solicitudes de certificación asignadas al veterinario autenticado.
@@ -257,6 +298,46 @@ Campos principales de respuesta:
 - `nombre_documento`
 - `enlace_documento`
 - `estado_documento`
+
+### 5. Registrar revisión de certificación desde la función de BD
+
+Registra la certificación y actualiza la solicitud en una sola operación usando la función `fn_registrar_revision_veterinaria`.
+
+- Método: `PUT`
+- Ruta: `/revision-certificacion-db/`
+
+Campos del body:
+
+- `id_solicitud`
+- `peso_validado`
+- `caracteristicas_validadas`
+- `observaciones_medicas`
+- `dictamen`
+- `id_estado_nuevo`
+
+Ejemplo de body:
+
+```json
+{
+  "id_solicitud": 1,
+  "peso_validado": 450.5,
+  "caracteristicas_validadas": "Animal en buen estado general",
+  "observaciones_medicas": "Sin hallazgos relevantes",
+  "dictamen": "APROBADO",
+  "id_estado_nuevo": 4
+}
+```
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "mensaje": "Certificación registrada y solicitud actualizada correctamente",
+  "id_certificacion": 10,
+  "id_solicitud": 1
+}
+```
 
 ## Endpoints de gestión existentes
 
