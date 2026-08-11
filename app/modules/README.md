@@ -16,6 +16,7 @@ Objetivo: trabajar en paralelo sin conflictos de merge y sin romper el contrato 
 - `comercial`: funcional (productores y animales)
 - `veterinario`: funcional (veterinarios, solicitudes y certificaciones)
 - `admin`: funcional (gestion documental, catalogos ganaderos, bitacora y sanidad)
+- `media`: funcional base (subida autenticada de imagenes y documentos, retorna URLs listas para BD)
 - `traspatio`: funcional base (consultas propias de productor en `/traspatio/*`)
 
 ## Siguiente orden sugerido

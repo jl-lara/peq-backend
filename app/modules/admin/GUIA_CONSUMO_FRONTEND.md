@@ -156,6 +156,16 @@ Campos principales de respuesta:
 - `id_usuario_subio`
 - `tipo_documento`
 - `enlace_documento`
+
+### 4.1 Subida de archivos
+
+Para subir una imagen o documento antes de guardar la URL en la BD, usa:
+
+- Ruta: `POST /media/subir/`
+- Formato: `multipart/form-data`
+- Campo requerido: `file`
+
+La respuesta regresa la URL segura en `url` y `secure_url`. Esa URL se puede guardar en `documentos_animal.url_archivo` o en campos de imágenes de animal como `foto_frontal` y `foto_lateral`.
 - `estado_revision`
 - `notas_administrador`
 - `fecha_revision`

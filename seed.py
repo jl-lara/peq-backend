@@ -465,7 +465,7 @@ def poblar_base_de_datos():
         usuarios = seed_usuarios(db, roles, estados)
         seed_perfiles(db, usuarios, roles)
         precios = seed_catalogos_ganaderos(db, categorias)
-        seed_datos_operativos(db, usuarios, categorias, trazas, estados, acciones, precios)
+        seed_datos_operativos(db, usuarios, categorias, razas, estados, acciones, precios)
         db.commit()
         print("✅ ¡Éxito! La base de datos ha sido poblada con los datos de referencia.")
     except Exception as e:

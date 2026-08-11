@@ -84,10 +84,18 @@ En la configuración de Render, ve a la sección de "Environment" y agrega las v
 * `DATABASE_URL`: `postgresql://tu_usuario:tu_password@ruta_interna_de_render/peq_db` *(Usa la "Internal Database URL" que te da Render en tu instancia de Postgres para mayor velocidad).*
 * `SECRET_KEY`: `escribe_aqui_una_clave_secreta_muy_larga_y_segura`
 * `CORS_ALLOWED_ORIGINS`: `https://tu-frontend.com,https://admin.tu-frontend.com`
+* `CLOUDINARY_CLOUD_NAME`: nombre del entorno de Cloudinary.
+* `CLOUDINARY_API_KEY`: llave pública para la subida autenticada desde backend.
+* `CLOUDINARY_API_SECRET`: secreto del backend para firmar la subida.
 
 > `SECRET_KEY` es obligatoria. Si no está definida, la API no inicia.
+> La conexión con Cloudinary ocurre en tiempo de ejecución cuando se llama `POST /media/subir/`; el backend lee esas variables de entorno y usa `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET` para firmar la subida.
 
-### 4. Desplegar y Migrar
+### 4. Subida de Archivos
+
+La API expone `POST /media/subir/` para subir imágenes y documentos. El backend detecta el tipo de archivo, lo envía a Cloudinary como `image` o `raw`, y responde con una URL segura lista para guardar en columnas como `foto_frontal`, `foto_lateral` o `url_archivo`.
+
+### 5. Desplegar y Migrar
 
 Haz clic en **Deploy**. Render instalará Python, las dependencias y arrancará `uvicorn`.
 
