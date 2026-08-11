@@ -156,19 +156,69 @@ Campos principales de respuesta:
 - `id_usuario_subio`
 - `tipo_documento`
 - `enlace_documento`
+- `estado_revision`
+- `notas_administrador`
+- `fecha_revision`
 
 ### 4.1 Subida de archivos
 
-Para subir una imagen o documento antes de guardar la URL en la BD, usa:
+Para subir un PDF antes de guardar la URL en la BD, usa:
 
 - Ruta: `POST /media/subir/`
 - Formato: `multipart/form-data`
 - Campo requerido: `file`
 
-La respuesta regresa la URL segura en `url` y `secure_url`. Esa URL se puede guardar en `documentos_animal.url_archivo` o en campos de imágenes de animal como `foto_frontal` y `foto_lateral`.
-- `estado_revision`
-- `notas_administrador`
-- `fecha_revision`
+La respuesta regresa la URL segura en `url` y `secure_url`. Esa URL se guarda en `documentos_animal.url_archivo`.
+
+### 5. Consumo desde el frontend
+
+El flujo recomendado es:
+
+- El usuario selecciona un PDF.
+- El frontend lo envía con `multipart/form-data` al endpoint `POST /media/subir/`.
+- El backend responde con la URL del archivo.
+- El frontend guarda esa URL en el registro de documento o la usa para mostrar el PDF.
+
+Ejemplo con `fetch`:
+
+```js
+async function subirPdf(file, token) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_BASE_URL}/media/subir/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo subir el PDF');
+  }
+
+  return await response.json();
+}
+```
+
+Ejemplo para mostrar el PDF en el frontend:
+
+```jsx
+function PdfPreview({ url }) {
+  return (
+    <iframe
+      src={url}
+      title="Vista previa del documento"
+      width="100%"
+      height="700"
+      style={{ border: 'none' }}
+    />
+  );
+}
+```
+
+Si el PDF no se muestra dentro del `iframe`, abre la misma URL en una pestaña nueva o usa un visor PDF como PDF.js.
 
 ### 4.1 Solicitudes de cambio
 

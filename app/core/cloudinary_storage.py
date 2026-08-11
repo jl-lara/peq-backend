@@ -8,8 +8,12 @@ import uuid
 from pathlib import Path
 from typing import Literal
 from urllib import error, request
+from urllib.parse import urlparse
 
 from fastapi import HTTPException, UploadFile, status
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ASSET_KIND_IMAGE = "imagen"
 ASSET_KIND_DOCUMENT = "documento"
@@ -59,6 +63,16 @@ def _get_env_value(name: str) -> str:
 
 
 def _cloudinary_credentials() -> tuple[str, str, str]:
+	cloudinary_url = os.getenv("CLOUDINARY_URL", "").strip()
+	if cloudinary_url:
+		parsed_url = urlparse(cloudinary_url)
+		if parsed_url.scheme != "cloudinary" or not parsed_url.hostname or not parsed_url.username or not parsed_url.password:
+			raise HTTPException(
+				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+				detail="CLOUDINARY_URL tiene un formato inválido. Debe ser cloudinary://api_key:api_secret@cloud_name.",
+			)
+		return parsed_url.hostname, parsed_url.username, parsed_url.password
+
 	cloud_name = _get_env_value("CLOUDINARY_CLOUD_NAME")
 	api_key = _get_env_value("CLOUDINARY_API_KEY")
 	api_secret = _get_env_value("CLOUDINARY_API_SECRET")

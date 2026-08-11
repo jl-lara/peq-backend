@@ -87,6 +87,7 @@ En la configuración de Render, ve a la sección de "Environment" y agrega las v
 * `CLOUDINARY_CLOUD_NAME`: nombre del entorno de Cloudinary.
 * `CLOUDINARY_API_KEY`: llave pública para la subida autenticada desde backend.
 * `CLOUDINARY_API_SECRET`: secreto del backend para firmar la subida.
+* Alternativa válida: `CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>`.
 
 > `SECRET_KEY` es obligatoria. Si no está definida, la API no inicia.
 > La conexión con Cloudinary ocurre en tiempo de ejecución cuando se llama `POST /media/subir/`; el backend lee esas variables de entorno y usa `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET` para firmar la subida.
