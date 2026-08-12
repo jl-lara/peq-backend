@@ -132,6 +132,34 @@ class EditarPerfilProductorRequest(BaseModel):
 	superficie_hectareas: float = Field(..., ge=0.0)
 	documentos: list[DocumentoAdjuntoProductor] | None = []
 
+
+class DocumentoRegistroProductorRequest(BaseModel):
+	id_tipo_doc: int
+	url_archivo: str
+	notas: str | None = None
+
+
+class RegistroProductorTraspatioDBRequest(BaseModel):
+	nombre: str
+	apellido_paterno: str
+	apellido_materno: str | None = None
+	email: str
+	telefono: str | None = None
+	ciudad: str | None = None
+	usuario: str
+	password: str
+	nombre_granja: str
+	direccion: str
+	capacidad_animales: int
+	superficie_hectareas: float
+	documentos: list[DocumentoRegistroProductorRequest]
+
+
+class RegistroProductorTraspatioDBResponse(BaseModel):
+	status: str
+	mensaje: str
+	id_usuario: int
+
 __all__ = [
 	"AnimalResponse",
 	"AnimalRegistradoProductorResponse",
@@ -149,4 +177,7 @@ __all__ = [
 	"CambiarContrasenaRequest",
 	"DocumentoAdjuntoProductor",
 	"EditarPerfilProductorRequest",
+	"DocumentoRegistroProductorRequest",
+	"RegistroProductorTraspatioDBRequest",
+	"RegistroProductorTraspatioDBResponse",
 ]

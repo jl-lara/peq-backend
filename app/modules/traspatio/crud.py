@@ -9,6 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from passlib.context import CryptContext
+from app import crud as legacy_crud
 from app import models
 
 
@@ -276,6 +277,63 @@ def get_dashboard_productor(db: Session, id_usuario: int):
 		"resumen_general": {"limite_permitido": 0, "total_animales_registrados": 0},
 		"desglose_categorias": [],
 	}
+
+
+def registrar_productor_traspatio_db(db: Session, registro: dict):
+	documentos = registro.get("documentos") or []
+	if isinstance(documentos, str):
+		documentos = json.loads(documentos)
+	hashed_password = legacy_crud.get_password_hash(registro.get("password") or "")
+
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_registrar_productor_traspatio(
+					:p_nombre,
+					:p_apellido_paterno,
+					:p_apellido_materno,
+					:p_email,
+					:p_telefono,
+					:p_ciudad,
+					:p_usuario,
+					:p_password,
+					:p_nombre_granja,
+					:p_direccion,
+					:p_capacidad_animales,
+					:p_superficie_hectareas,
+					:p_documentos
+				) AS resultado
+				"""
+			),
+			{
+				"p_nombre": registro.get("nombre"),
+				"p_apellido_paterno": registro.get("apellido_paterno"),
+				"p_apellido_materno": registro.get("apellido_materno"),
+				"p_email": registro.get("email"),
+				"p_telefono": registro.get("telefono"),
+				"p_ciudad": registro.get("ciudad"),
+				"p_usuario": registro.get("usuario"),
+				"p_password": hashed_password,
+				"p_nombre_granja": registro.get("nombre_granja"),
+				"p_direccion": registro.get("direccion"),
+				"p_capacidad_animales": registro.get("capacidad_animales"),
+				"p_superficie_hectareas": registro.get("superficie_hectareas"),
+				"p_documentos": json.dumps(documentos, ensure_ascii=False),
+			},
+		).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
 
 
 from fastapi import HTTPException

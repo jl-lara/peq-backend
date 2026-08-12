@@ -11,6 +11,9 @@ from app.database import get_db
 from . import crud, schemas
 
 
+public_router = APIRouter()
+
+
 
 def require_veterinario_user(current_user=Depends(auth.get_current_user), db: Session = Depends(get_db)):
 	rol = db.query(models.Rol).filter(models.Rol.id_rol == current_user.id_rol).first()
@@ -250,3 +253,18 @@ def actualizar_certificacion(
 @router.delete("/certificaciones/{id_certificacion}", tags=["Flujo Certificación"])
 def eliminar_certificacion(id_certificacion: int, db: Session = Depends(get_db)):
 	return crud.delete_certificacion(db=db, id_certificacion=id_certificacion)
+
+
+@public_router.post(
+	"/registro-veterinario/",
+	response_model=schemas.RegistroVeterinarioDBResponse,
+	tags=["Registro Veterinario"],
+)
+def registrar_veterinario_publico(
+	registro: schemas.RegistroVeterinarioDBRequest,
+	db: Session = Depends(get_db),
+):
+	resultado = crud.registrar_veterinario_db(db=db, registro=registro.model_dump())
+	if resultado is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se pudo completar el registro del veterinario")
+	return resultado

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -9,6 +9,7 @@ from app.database import get_db
 
 from . import crud, schemas
 
+public_router = APIRouter()
 router = APIRouter(dependencies=[Depends(auth.get_current_user)])
 
 
@@ -205,3 +206,18 @@ def actualizar_perfil_productor(
 		if payload.documentos
 		else [],
 	)
+
+
+@public_router.post(
+	"/registro-ranchero-comercial/",
+	response_model=schemas.RegistroRancheroComercialDBResponse,
+	tags=["Registro Ranchero Comercial"],
+)
+def registrar_ranchero_comercial_publico(
+	registro: schemas.RegistroRancheroComercialDBRequest,
+	db: Session = Depends(get_db),
+):
+	resultado = crud.registrar_ranchero_comercial_db(db=db, registro=registro.model_dump())
+	if resultado is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se pudo completar el registro del ranchero comercial")
+	return resultado

@@ -110,6 +110,61 @@ def delete_certificacion(db: Session, id_certificacion: int):
 	return legacy_crud.delete_certificacion(db=db, id_certificacion=id_certificacion)
 
 
+def registrar_veterinario_db(db: Session, registro: dict):
+	documentos = registro.get("documentos") or []
+	if isinstance(documentos, str):
+		documentos = json.loads(documentos)
+	hashed_password = legacy_crud.get_password_hash(registro.get("password") or "")
+
+	try:
+		resultado = db.execute(
+			text(
+				"""
+				SELECT fn_registrar_veterinario(
+					:p_nombre,
+					:p_apellido_paterno,
+					:p_apellido_materno,
+					:p_email,
+					:p_telefono,
+					:p_ciudad,
+					:p_usuario,
+					:p_password,
+					:p_cedula_profesional,
+					:p_especialidad,
+					:p_universidad,
+					:p_documentos
+				) AS resultado
+				"""
+			),
+			{
+				"p_nombre": registro.get("nombre"),
+				"p_apellido_paterno": registro.get("apellido_paterno"),
+				"p_apellido_materno": registro.get("apellido_materno"),
+				"p_email": registro.get("email"),
+				"p_telefono": registro.get("telefono"),
+				"p_ciudad": registro.get("ciudad"),
+				"p_usuario": registro.get("usuario"),
+				"p_password": hashed_password,
+				"p_cedula_profesional": registro.get("cedula_profesional"),
+				"p_especialidad": registro.get("especialidad"),
+				"p_universidad": registro.get("universidad"),
+				"p_documentos": json.dumps(documentos, ensure_ascii=False),
+			},
+			).scalar()
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
+
+	if resultado is None:
+		return None
+
+	if isinstance(resultado, str):
+		resultado = json.loads(resultado)
+
+	return resultado
+
+
 def get_perfil_veterinario(db: Session, id_usuario: int):
 	perfil = (
 		db.query(

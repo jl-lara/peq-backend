@@ -141,6 +141,33 @@ class DocumentoVeterinarioDBResponse(BaseModel):
 	enlace_documento: str
 	estado_documento: str
 
+
+class DocumentoRegistroVeterinarioRequest(BaseModel):
+	id_tipo_doc: int
+	url_archivo: str
+	notas: Optional[str] = None
+
+
+class RegistroVeterinarioDBRequest(BaseModel):
+	nombre: str
+	apellido_paterno: str
+	apellido_materno: Optional[str] = None
+	email: str
+	telefono: Optional[str] = None
+	ciudad: Optional[str] = None
+	usuario: str
+	password: str
+	cedula_profesional: str
+	especialidad: Optional[str] = None
+	universidad: Optional[str] = None
+	documentos: list[DocumentoRegistroVeterinarioRequest]
+
+
+class RegistroVeterinarioDBResponse(BaseModel):
+	status: str
+	mensaje: str
+	id_usuario: int
+
 __all__ = [
 	"CertificacionCreate",
 	"CertificacionResponse",
@@ -160,6 +187,9 @@ __all__ = [
 	"PerfilVeterinarioResumenResponse",
 	"DocumentoVeterinarioResponse",
 	"DocumentoVeterinarioDBResponse",
+	"DocumentoRegistroVeterinarioRequest",
+	"RegistroVeterinarioDBRequest",
+	"RegistroVeterinarioDBResponse",
 	"SolicitudPanelVeterinarioDBResponse",
 	"SolicitudCertificacionCreate",
 	"SolicitudCertificacionResponse",

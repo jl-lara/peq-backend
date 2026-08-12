@@ -136,7 +136,7 @@ def _build_multipart_form(fields: dict[str, str], file_field: str, file_name: st
 	return b"".join(parts), boundary
 
 
-async def upload_media_file(file: UploadFile, uploaded_by: int) -> dict:
+async def upload_media_file(file: UploadFile, uploaded_by: int | None = None) -> dict:
 	cloud_name, api_key, api_secret = _cloudinary_credentials()
 	file_name = file.filename or "archivo"
 	mime_type = _guess_mime_type(file_name, file.content_type)
@@ -157,7 +157,8 @@ async def upload_media_file(file: UploadFile, uploaded_by: int) -> dict:
 		)
 
 	resource_type = "image" if asset_kind == ASSET_KIND_IMAGE else "raw"
-	folder = f"peq/{'imagenes' if asset_kind == ASSET_KIND_IMAGE else 'documentos'}/{uploaded_by}"
+	folder_suffix = uploaded_by if uploaded_by is not None else "publico"
+	folder = f"peq/{'imagenes' if asset_kind == ASSET_KIND_IMAGE else 'documentos'}/{folder_suffix}"
 	cloudinary_url = f"https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload"
 	form_fields = {
 		"folder": folder,
@@ -218,5 +219,5 @@ async def upload_media_file(file: UploadFile, uploaded_by: int) -> dict:
 		"original_filename": payload.get("original_filename", file_name),
 		"mime_type": mime_type,
 		"folder": payload.get("folder", folder),
-		"uploaded_by": uploaded_by,
+		"uploaded_by": uploaded_by or 0,
 	}

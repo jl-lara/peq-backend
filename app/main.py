@@ -10,8 +10,11 @@ from .modules.admin.router import router as admin_router
 from .modules.catalogo_publico.router import router as catalogo_publico_router
 from .modules.catalogos_base.router import router as catalogos_base_router
 from .modules.comercial.router import router as comercial_router
+from .modules.comercial.router import public_router as comercial_public_router
 from .modules.media.router import router as media_router
 from .modules.traspatio.router import router as traspatio_router
+from .modules.traspatio.router import public_router as traspatio_public_router
+from .modules.veterinario.router import public_router as veterinario_public_router
 from .modules.veterinario.router import router as veterinario_router
 
 app = FastAPI(
@@ -43,8 +46,11 @@ app.include_router(usuarios_protected_router)
 app.include_router(usuarios_public_router)
 app.include_router(catalogo_publico_router)
 app.include_router(catalogos_base_router)
+app.include_router(comercial_public_router)
 app.include_router(comercial_router)
 app.include_router(media_router)
+app.include_router(traspatio_public_router)
+app.include_router(veterinario_public_router)
 app.include_router(veterinario_router)
 app.include_router(admin_router)
 app.include_router(traspatio_router)
