@@ -7,6 +7,7 @@ from .modules.usuarios.router import (
     public_router as usuarios_public_router,
 )
 from .modules.admin.router import router as admin_router
+from .modules.catalogo_publico.router import router as catalogo_publico_router
 from .modules.catalogos_base.router import router as catalogos_base_router
 from .modules.comercial.router import router as comercial_router
 from .modules.media.router import router as media_router
@@ -40,6 +41,7 @@ def read_root():
 
 app.include_router(usuarios_protected_router)
 app.include_router(usuarios_public_router)
+app.include_router(catalogo_publico_router)
 app.include_router(catalogos_base_router)
 app.include_router(comercial_router)
 app.include_router(media_router)
